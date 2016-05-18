@@ -35,6 +35,7 @@ MODULE_OBJECTS = $(MODULES:.mod=.o)
 TEST_PROGRAMS = test_inprod_analytic test_aotensor
 TESTS = $(TEST_PROGRAMS:=.test)
 
+all: FCFLAGS = -llapack
 all: $(PROGRAMS)
 
 debug: FCFLAGS = -g -O0 -fbounds-check -Wall -Wextra -Wconversion -pedantic -ffpe-trap=zero,overflow,underflow
