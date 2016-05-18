@@ -48,6 +48,10 @@ MODULE rk4_tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j2 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j3 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j4 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j1h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j2h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j3h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j4h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kAA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kBB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
 
@@ -81,7 +85,7 @@ CONTAINS
   !> Routine to initialise the adjoint model integration bufers.
   SUBROUTINE init_ad_integrator
     INTEGER :: AllocStat,ii
-    ALLOCATE(ad_buf_y1(0:ndim),ad_buf_kA(0:ndim),ad_buf_kB(0:ndim), ad_buf_kAA(0:ndim),ad_buf_kBB(0:ndim),tl_buf_j1(ndim,ndim),tl_buf_j2(ndim,ndim),tl_buf_j3(ndim,ndim),tl_buf_j4(ndim,ndim),one(ndim,ndim),STAT=AllocStat)
+    ALLOCATE(ad_buf_y1(0:ndim),ad_buf_kA(0:ndim),ad_buf_kB(0:ndim), ad_buf_kAA(0:ndim),ad_buf_kBB(0:ndim),tl_buf_j1h(ndim,ndim),tl_buf_j2h(ndim,ndim),tl_buf_j3h(ndim,ndim),tl_buf_j4h(ndim,ndim),tl_buf_j1(ndim,ndim),tl_buf_j2(ndim,ndim),tl_buf_j3(ndim,ndim),tl_buf_j4(ndim,ndim),one(ndim,ndim),STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
     
     one=0.0d0
@@ -259,12 +263,13 @@ CONTAINS
   !> @param t Actual integration time
   !> @param dt Integration timestep.
   !> @param ynew Model variable at time t+dt
-  SUBROUTINE tl_prop_step(y,prop,t,dt,ynew)
+  SUBROUTINE tl_prop_step(y,ensemble,t,dt,ynew)
     REAL(KIND=8), INTENT(INOUT) :: t
     REAL(KIND=8), INTENT(IN) :: dt
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
 
-    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: prop
+    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(INOUT) :: ensemble
+    REAL(KIND=8), DIMENSION(ndim,ndim) :: prop
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: ynew
  
     CALL tendencies(t,y,tl_buf_kA)
@@ -284,9 +289,19 @@ CONTAINS
 
     CALL tendencies(t+dt,tl_buf_y2,tl_buf_kD)
     tl_buf_j4=jacobian_matrix(tl_buf_y1)
-
+    
+    tl_buf_j1h=tl_buf_j1
+    tl_buf_j2h=tl_buf_j2
+    tl_buf_j3h=tl_buf_j3
+    tl_buf_j4h=tl_buf_j4
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2., tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2., tl_buf_j3, ndim,tl_buf_j2h, ndim,1.0d0, tl_buf_j3h, ndim)
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt , tl_buf_j4, ndim,tl_buf_j3h, ndim,1.0d0, tl_buf_j4h, ndim)
+     
     ynew=y  + dt6*(tl_buf_kA + 2.*tl_buf_kB + 2.*tl_buf_kC + tl_buf_kD)
     prop=one+ dt6*(tl_buf_j4 + 2.*tl_buf_j2 + 2.*tl_buf_j3 + tl_buf_j4)
+    tl_buf_j1h=ensemble
+    call dgemm ('n', 'n', ndim, ndim, ndim, 1.0d0 , prop, ndim,tl_buf_j1h, ndim,0.0d0, ensemble, ndim)
 
     t=t+dt
    
