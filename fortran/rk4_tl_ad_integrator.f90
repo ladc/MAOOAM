@@ -286,7 +286,7 @@ CONTAINS
     tl_buf_j4=jacobian_matrix(tl_buf_y1)
 
     ynew=y  + dt6*(tl_buf_kA + 2.*tl_buf_kB + 2.*tl_buf_kC + tl_buf_kD)
-    prop=one+ dt6*(tl_buf_p4 + 2.*tl_buf_p2 + 2.*tl_buf_p3 + tl_buf_p4)
+    prop=one+ dt6*(tl_buf_j4 + 2.*tl_buf_j2 + 2.*tl_buf_j3 + tl_buf_j4)
 
     t=t+dt
    
