@@ -1,0 +1,48 @@
+!------------------------------------------------------------------------------!
+! Namelist file :                                                              !
+! Initial condition.                                                           !
+!------------------------------------------------------------------------------!
+ 
+&ICLIST
+  ! psi variables
+  ICDELTA(1) = -0.9803715                                 ! typ= A, Nx= 0.0, Ny= 1.0
+  ICDELTA(2) = 0.8967724                                  ! typ= K, Nx= 1.0, Ny= 1.0
+  ICDELTA(3) = 0.0581479                                  ! typ= L, Nx= 1.0, Ny= 1.0
+  ICDELTA(4) = -0.7054696                                 ! typ= A, Nx= 0.0, Ny= 2.0
+  ICDELTA(5) = -0.8197689                                 ! typ= K, Nx= 1.0, Ny= 2.0
+  ICDELTA(6) = 0.1496391                                  ! typ= L, Nx= 1.0, Ny= 2.0
+  ICDELTA(7) = 0.9878974                                  ! typ= K, Nx= 2.0, Ny= 1.0
+  ICDELTA(8) = -0.4072905                                 ! typ= L, Nx= 2.0, Ny= 1.0
+  ICDELTA(9) = 0.6753855                                  ! typ= K, Nx= 2.0, Ny= 2.0
+  ICDELTA(10) = -0.7902174                                 ! typ= L, Nx= 2.0, Ny= 2.0
+  ! theta variables
+  ICDELTA(11) = 0.8232102                                  ! typ= A, Nx= 0.0, Ny= 1.0
+  ICDELTA(12) = -0.3037391                                 ! typ= K, Nx= 1.0, Ny= 1.0
+  ICDELTA(13) = -0.9389124                                 ! typ= L, Nx= 1.0, Ny= 1.0
+  ICDELTA(14) = -0.2931471                                 ! typ= A, Nx= 0.0, Ny= 2.0
+  ICDELTA(15) = -0.9182196                                 ! typ= K, Nx= 1.0, Ny= 2.0
+  ICDELTA(16) = -0.5119152                                 ! typ= L, Nx= 1.0, Ny= 2.0
+  ICDELTA(17) = 0.2426548                                  ! typ= K, Nx= 2.0, Ny= 1.0
+  ICDELTA(18) = 0.3070507                                  ! typ= L, Nx= 2.0, Ny= 1.0
+  ICDELTA(19) = 0.6064520                                  ! typ= K, Nx= 2.0, Ny= 2.0
+  ICDELTA(20) = 0.6403313                                  ! typ= L, Nx= 2.0, Ny= 2.0
+  ! A variables
+  ICDELTA(21) = 0.0548239                                  ! Nx= 0.5, Ny= 1.0
+  ICDELTA(22) = -0.5740376                                 ! Nx= 0.5, Ny= 2.0
+  ICDELTA(23) = 0.1534200                                  ! Nx= 0.5, Ny= 3.0
+  ICDELTA(24) = 0.5347285                                  ! Nx= 0.5, Ny= 4.0
+  ICDELTA(25) = -0.8134389                                 ! Nx= 1.0, Ny= 1.0
+  ICDELTA(26) = 0.5373740                                  ! Nx= 1.0, Ny= 2.0
+  ICDELTA(27) = -0.3520541                                 ! Nx= 1.0, Ny= 3.0
+  ICDELTA(28) = -0.9712429                                 ! Nx= 1.0, Ny= 4.0
+  ! T variables
+  ICDELTA(29) = 0.3263869                                  ! Nx= 0.5, Ny= 1.0
+  ICDELTA(30) = -0.4139895                                 ! Nx= 0.5, Ny= 2.0
+  ICDELTA(31) = 0.0846424                                  ! Nx= 0.5, Ny= 3.0
+  ICDELTA(32) = 0.5926833                                  ! Nx= 0.5, Ny= 4.0
+  ICDELTA(33) = -0.7678924                                 ! Nx= 1.0, Ny= 1.0
+  ICDELTA(34) = 0.0410004                                  ! Nx= 1.0, Ny= 2.0
+  ICDELTA(35) = -0.9066339                                 ! Nx= 1.0, Ny= 3.0
+  ICDELTA(36) = 0.2114391                                  ! Nx= 1.0, Ny= 4.0
+&END
+ 

@@ -1,5 +1,5 @@
 
-! tl_ad_integrator.f90
+! rk4_tl_ad_integrator.f90
 !
 !> Tangent Linear (TL) and Adjoint (AD) model versions of MAOOAM.
 !> Integrators module.
@@ -11,7 +11,7 @@
 !---------------------------------------------------------------------------!
 !                                                                           
 !>  @remark                                                                 
-!>  This module actually contains the Heun algorithm routines.
+!>  This module actually contains the RK4 algorithm routines.
 !>  The user can modify it according to its preferred integration scheme.
 !>  For higher-order schemes, additional buffers will probably have to be defined.
 !                                                                           
@@ -35,7 +35,7 @@ MODULE rk4_tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: ad_buf_kA !< Buffer to hold tendencies in the RK4 scheme for the adjoint model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: ad_buf_kB !< Buffer to hold tendencies in the RK4 scheme for the adjoint model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: ad_buf_kAA !< Buffer to hold tendencies in the RK4 scheme for the adjoint model
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: ad_buf_kBA !< Buffer to hold tendencies in the RK4 scheme for the adjoint model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: ad_buf_kBB !< Buffer to hold tendencies in the RK4 scheme for the adjoint model
 
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_y1 !< Buffer to hold the intermediate position of the tangent linear model
@@ -43,10 +43,10 @@ MODULE rk4_tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kAA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kBA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kBB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
 
     
-  PUBLIC :: init_ad_integrator, ad_step, init_tl_integrator, tl_step
+  PUBLIC :: init_ad_integrator, ad_step, evolve_ad_step, init_tl_integrator, tl_step, evolve_tl_step
 
 CONTAINS
 

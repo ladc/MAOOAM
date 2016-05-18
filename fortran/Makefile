@@ -28,9 +28,9 @@ endif
 .SUFFIXES:
 .SUFFIXES: .f90 .o .mod .out .test
 
-PROGRAMS = maooam test_tl_ad
+PROGRAMS = maooam test_tl_ad maooam_tl
 
-MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod
+MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod
 MODULE_OBJECTS = $(MODULES:.mod=.o)
 
 TEST_PROGRAMS = test_inprod_analytic test_aotensor
@@ -68,6 +68,7 @@ ic_def.mod: util.mod aotensor_def.mod
 stat.mod: params.mod
 maooam_tl_ad.mod: aotensor_def.mod
 tl_ad_integrator.mod: maooam_tl_ad.mod
+rk4_tl_ad_integrator.mod: maooam_tl_ad.mod
 
 clean:
 	$(RM) *.o *.mod $(PROGRAMS) $(TEST_PROGRAMS) tests/*.out
