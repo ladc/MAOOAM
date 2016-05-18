@@ -13,7 +13,7 @@
 !>  @remark                                                                 
 !>  This module actually contains the RK4 algorithm routines.
 !>  The user can modify it according to its preferred integration scheme.
-!>  For higher-order schemes, additional buffers will probably have to be defined.
+!>  For higher-order schemes, additional bufers will probably have to be defined.
 !                                                                           
 !---------------------------------------------------------------------------
 
@@ -42,6 +42,12 @@ MODULE rk4_tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_y11 !< Buffer to hold the intermediate position of the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kC !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kD !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j1 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j2 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j3 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_j4 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kAA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_kBB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
 
@@ -54,7 +60,7 @@ CONTAINS
   !> @param t Time at which the tendencies have to be computed. Actually not needed for autonomous systems.
   !> @param y Point at which the tendencies have to be computed.
   !> @param res vector to store the result.
-  !> @remark Note that it is NOT safe to pass `y` as a result buffer, 
+  !> @remark Note that it is NOT safe to pass `y` as a result bufer, 
   !> as this operation does multiple passes.
   SUBROUTINE tendencies(t,y,res)
     REAL(KIND=8), INTENT(IN) :: t
@@ -72,11 +78,17 @@ CONTAINS
 
 
   
-  !> Routine to initialise the adjoint model integration buffers.
+  !> Routine to initialise the adjoint model integration bufers.
   SUBROUTINE init_ad_integrator
-    INTEGER :: AllocStat
-    ALLOCATE(ad_buf_y1(0:ndim),ad_buf_kA(0:ndim),ad_buf_kB(0:ndim), ad_buf_kAA(0:ndim),ad_buf_kBB(0:ndim) ,STAT=AllocStat)
+    INTEGER :: AllocStat,ii
+    ALLOCATE(ad_buf_y1(0:ndim),ad_buf_kA(0:ndim),ad_buf_kB(0:ndim), ad_buf_kAA(0:ndim),ad_buf_kBB(0:ndim),tl_buf_j1(ndim,ndim),tl_buf_j2(ndim,ndim),tl_buf_j3(ndim,ndim),tl_buf_j4(ndim,ndim),one(ndim,ndim),STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
+    
+    one=0.0d0
+    do ii=1,ndim
+      one(ii,ii)=1.0d0
+    enddo
+
   END SUBROUTINE init_ad_integrator
 
   !> Routine to perform an integration step (RK4 algorithm) of the adjoint model. The incremented time is returned.
@@ -160,10 +172,10 @@ CONTAINS
   !                                                     !
   !-----------------------------------------------------!
 
-  !> Routine to initialise the tangent linear model integration buffers.
+  !> Routine to initialise the tangent linear model integration bufers.
   SUBROUTINE init_tl_integrator
     INTEGER :: AllocStat
-    ALLOCATE(tl_buf_y1(0:ndim),tl_buf_kA(0:ndim),tl_buf_kB(0:ndim), tl_buf_kAA(0:ndim),tl_buf_kBB(0:ndim) ,STAT=AllocStat)
+    ALLOCATE(tl_buf_y1(0:ndim),tl_buf_kA(0:ndim),tl_buf_kB(0:ndim),tl_buf_kC(0:ndim),tl_buf_kD(0:ndim), tl_buf_kAA(0:ndim),tl_buf_kBB(0:ndim) ,STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
   END SUBROUTINE init_tl_integrator
 
@@ -240,5 +252,44 @@ CONTAINS
     ynew=y+tl_buf_kA*dt/6
     deltaynew=deltay+tl_buf_kAA*dt/6
   END SUBROUTINE evolve_tl_step
+
+  !> Routine to perform a simultaneously an integration step (RK4 algorithm) of the nonlinear and computes the RK4 tangent linear propagator. The incremented time is returned.
+  !> @param y Model variable at time t
+  !> @param prop RK4 Propagator at time t
+  !> @param t Actual integration time
+  !> @param dt Integration timestep.
+  !> @param ynew Model variable at time t+dt
+  SUBROUTINE tl_prop_step(y,prop,t,dt,ynew)
+    REAL(KIND=8), INTENT(INOUT) :: t
+    REAL(KIND=8), INTENT(IN) :: dt
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
+
+    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: prop
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: ynew
+ 
+    CALL tendencies(t,y,tl_buf_kA)
+    tl_buf_j1=jacobian_matrix(y)
+
+    tl_buf_y1 = y + 0.5*dt*tl_buf_kA
+
+    CALL tendencies(t+0.5*dt,tl_buf_y1,tl_buf_kB)
+    tl_buf_j2=jacobian_matrix(tl_buf_y1)
     
+    tl_buf_y1 = y + 0.5*dt*tl_buf_kB
+
+    CALL tendencies(t+0.5*dt,tl_buf_y2,tl_buf_kC)
+    tl_buf_j3=jacobian_matrix(tl_buf_y1)
+
+    tl_buf_y1 = y + dt*tl_buf_kC
+
+    CALL tendencies(t+dt,tl_buf_y2,tl_buf_kD)
+    tl_buf_j4=jacobian_matrix(tl_buf_y1)
+
+    ynew=y  + dt6*(tl_buf_kA + 2.*tl_buf_kB + 2.*tl_buf_kC + tl_buf_kD)
+    prop=one+ dt6*(tl_buf_p4 + 2.*tl_buf_p2 + 2.*tl_buf_p3 + tl_buf_p4)
+
+    t=t+dt
+   
+  END SUBROUTINE tl_prop_step
+
 END MODULE rk4_tl_ad_integrator
