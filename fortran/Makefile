@@ -3,6 +3,7 @@ DEBUG = false
 FC = gfortran
 CC = gcc
 FCFLAGS = -g -O2 -Wall
+LDFLAGS = -llapack
 
 #Adapt to host system
 ifeq (,$(findstring Windows,$(OS)))
@@ -52,13 +53,13 @@ test_aotensor.test: test_aotensor
 	diff tests/$<.out tests/$<.ref && echo PASS: $@ || echo FAIL: $@
 
 %.mod: %.f90
-	$(FC) $(FCFLAGS) -c $<
+	$(FC) $(LDFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.f90 $(MODULES)
-	$(FC) $(FCFLAGS) -c $<
+	$(FC) $(LDFLAGS) $(FCFLAGS) -c $<
 
 %: %.o $(MODULE_OBJECTS)
-	$(FC) $(FCFLAGS) $^ -o $@
+	$(FC) $(LDFLAGS) $(FCFLAGS) $^ -o $@
 
 inprod_analytic.mod: params.mod
 aotensor_def.mod: tensor.mod inprod_analytic.mod
