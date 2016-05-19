@@ -50,7 +50,7 @@ MODULE maooam_tl_ad
   !> Tensor representation of the Adjoint tendencies.
   TYPE(coolist), DIMENSION(:), ALLOCATABLE, PUBLIC :: adtensor
 
-  PUBLIC :: init_tltensor,init_adtensor,init_adtensor_ref,ad,tl
+  PUBLIC :: init_tltensor,init_adtensor,init_adtensor_ref,ad,tl,jacobian_mat
   
   !-----------------------------------------------------!
   !                                                     !
