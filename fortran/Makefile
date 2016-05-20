@@ -1,9 +1,7 @@
-SHELL = /bin/sh
-DEBUG = false
 FC = gfortran
 CC = gcc
-FCFLAGS = -g -O2 -Wall
-LDFLAGS = -llapack
+FCFLAGS = -frecord-marker=8 -O2 -Wall
+LDFLAGS = -llapack -lblas
 
 #Adapt to host system
 ifeq (,$(findstring Windows,$(OS)))
@@ -28,9 +26,9 @@ endif
 .SUFFIXES:
 .SUFFIXES: .f90 .o .mod .out .test
 
-PROGRAMS = maooam test_tl_ad maooam_tl
+PROGRAMS = maooam_lyap maooam test_tl_ad maooam_tl maooam_lyap
 
-MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod
+MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod lyap_vectors.mod
 MODULE_OBJECTS = $(MODULES:.mod=.o)
 
 TEST_PROGRAMS = test_inprod_analytic test_aotensor
@@ -38,7 +36,8 @@ TESTS = $(TEST_PROGRAMS:=.test)
 
 all: $(PROGRAMS)
 
-debug: FCFLAGS = -g -O0 -fbounds-check -Wall -Wextra -Wconversion -pedantic -ffpe-trap=zero,overflow,underflow
+debug: FCFLAGS = -g -O0 -fbounds-check -Wall -Wextra -Wconversion -pedantic 
+	#-ffpe-trap=zero,overflow,underflow -fbacktrace
 debug: all
 
 test: FCFLAGS = -g -O0 -fbounds-check -Wall -Wextra -Wconversion -pedantic -ffpe-trap=zero,overflow,underflow
@@ -69,6 +68,7 @@ stat.mod: params.mod
 maooam_tl_ad.mod: aotensor_def.mod
 tl_ad_integrator.mod: maooam_tl_ad.mod
 rk4_tl_ad_integrator.mod: maooam_tl_ad.mod
+lyap_vectors.mod: params.mod
 
 clean:
 	$(RM) *.o *.mod $(PROGRAMS) $(TEST_PROGRAMS) tests/*.out
