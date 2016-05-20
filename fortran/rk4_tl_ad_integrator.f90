@@ -264,20 +264,18 @@ CONTAINS
     deltaynew=deltay+tl_buf_kAA*dt/6
   END SUBROUTINE evolve_tl_step
 
-  !> Routine to perform a simultaneously an integration step (RK4 algorithm) of the nonlinear and computes the RK4 tangent linear propagator. The boolean variable adjoint allows for an adjoint forward integration as well.The incremented time is returned.
+  !> Routine to perform a simultaneously an integration step (RK4 algorithm) of the nonlinear and computes the RK4 tangent linear propagator. The boolean variable adjoint allows for an adjoint forward integration. The incremented time is returned.
   !> @param y Model variable at time t
   !> @param prop RK4 Propagator at time t
   !> @param t Actual integration time
   !> @param dt Integration timestep.
   !> @param ynew Model variable at time t+dt
-  !> @param ensemble contains an ensemble of lienar perturbation which are propagated forward by prop and then returned.
-  SUBROUTINE tl_prop_step(y,ensemble,t,dt,ynew,adjoint)
+  SUBROUTINE tl_prop_step(y,propagator,t,dt,ynew,adjoint)
     REAL(KIND=8), INTENT(INOUT) :: t
     REAL(KIND=8), INTENT(IN) :: dt
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
     LOGICAL, INTENT(IN) :: adjoint
-    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(INOUT) :: ensemble
-    REAL(KIND=8), DIMENSION(ndim,ndim) :: prop
+    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: propagator
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: ynew
  
     CALL tendencies(t,y,tl_buf_kA)
@@ -302,18 +300,15 @@ CONTAINS
     tl_buf_j2h=tl_buf_j2
     tl_buf_j3h=tl_buf_j3
     tl_buf_j4h=tl_buf_j4
-    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2., tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
-    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2., tl_buf_j3, ndim,tl_buf_j2h, ndim,1.0d0, tl_buf_j3h, ndim)
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2.0d0, tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt/2.0d0, tl_buf_j3, ndim,tl_buf_j2h, ndim,1.0d0, tl_buf_j3h, ndim)
     call dgemm ('n', 'n', ndim, ndim, ndim, dt , tl_buf_j4, ndim,tl_buf_j3h, ndim,1.0d0, tl_buf_j4h, ndim)
-    tl_buf_j1h=ensemble
      
     ynew=y  + dt/6.*(tl_buf_kA + 2.*tl_buf_kB + 2.*tl_buf_kC + tl_buf_kD)
     IF (adjoint) THEN
-            prop=one - dt/6.*(tl_buf_j4 + 2.*tl_buf_j2 + 2.*tl_buf_j3 + tl_buf_j4)
-            call dgemm ('t', 'n', ndim, ndim, ndim, 1.0d0 , prop, ndim,tl_buf_j1h, ndim,0.0d0, ensemble, ndim)
+            propagator=one - dt/6.*(tl_buf_j4h + 2.*tl_buf_j2h + 2.*tl_buf_j3h + tl_buf_j4h)
     ELSE
-            prop=one + dt/6.*(tl_buf_j4 + 2.*tl_buf_j2 + 2.*tl_buf_j3 + tl_buf_j4)
-            call dgemm ('n', 'n', ndim, ndim, ndim, 1.0d0 , prop, ndim,tl_buf_j1h, ndim,0.0d0, ensemble, ndim)
+            propagator=one + dt/6.*(tl_buf_j4h + 2.*tl_buf_j2h + 2.*tl_buf_j3h + tl_buf_j4h)
     END IF        
     t=t+dt
    
