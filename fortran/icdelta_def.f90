@@ -14,6 +14,7 @@ MODULE icdelta_def
   USE params, only: natm,noc,ndim
   USE util, only: str,rstr
   USE inprod_analytic, only:awavenum,owavenum
+  !USE IFPORT, only: rand !< IFORT COMPILER needs this module for function rand()
   IMPLICIT NONE
 
   PRIVATE

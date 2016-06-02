@@ -24,7 +24,7 @@ MODULE lyap_vectors
   !-----------------------------------------------------!
 
   USE params, only: ndim,dt,tw
-  USE IFPORT, only: rand
+  !USE IFPORT, only: rand
   IMPLICIT NONE
   
   PUBLIC :: bennettin_step,loclyap,lyapunov,ensemble,prop,init_lyap,multiply_prop,init_one
@@ -129,7 +129,7 @@ CONTAINS
    END SUBROUTINE bennettin_step
    SUBROUTINE init_random_seed()
      USE iso_fortran_env, only: int64
-     USE IFPORT, only: getpid
+     !USE IFPORT, only: getpid
      IMPLICIT NONE
      INTEGER, ALLOCATABLE :: seed(:)
      INTEGER :: i, n, un, istat, dt(8), pid

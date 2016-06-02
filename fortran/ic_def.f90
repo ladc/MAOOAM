@@ -14,6 +14,7 @@ MODULE ic_def
   USE params, only: natm,noc,ndim
   USE util, only: str,rstr
   USE inprod_analytic, only:awavenum,owavenum
+  !USE IFPORT
   IMPLICIT NONE
 
   PRIVATE
