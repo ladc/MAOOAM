@@ -292,7 +292,7 @@ CONTAINS
     tl_buf_j3=jacobian_mat(tl_buf_y1)
 
     tl_buf_y1 = y + dt*tl_buf_kC
-
+    !write(*,*) tl_buf_y1(0)
     CALL tendencies(t+dt,tl_buf_y1,tl_buf_kD)
     tl_buf_j4=jacobian_mat(tl_buf_y1)
     
@@ -302,13 +302,13 @@ CONTAINS
     tl_buf_j4h=tl_buf_j4
     call dgemm ('n', 'n', ndim, ndim, ndim, dt/2.0d0, tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
     call dgemm ('n', 'n', ndim, ndim, ndim, dt/2.0d0, tl_buf_j3, ndim,tl_buf_j2h, ndim,1.0d0, tl_buf_j3h, ndim)
-    call dgemm ('n', 'n', ndim, ndim, ndim, dt , tl_buf_j4, ndim,tl_buf_j3h, ndim,1.0d0, tl_buf_j4h, ndim)
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt      , tl_buf_j4, ndim,tl_buf_j3h, ndim,1.0d0, tl_buf_j4h, ndim)
      
-    ynew=y  + dt/6.*(tl_buf_kA + 2.*tl_buf_kB + 2.*tl_buf_kC + tl_buf_kD)
+    ynew=y  + dt/6.0d0*(tl_buf_kA + 2.0d0*tl_buf_kB + 2.0d0*tl_buf_kC + tl_buf_kD)
     IF (adjoint) THEN
-            propagator=one - dt/6.*(tl_buf_j4h + 2.*tl_buf_j2h + 2.*tl_buf_j3h + tl_buf_j4h)
+            propagator=one - dt/6.0d0*(tl_buf_j1h + 2.0d0*tl_buf_j2h + 2.0d0*tl_buf_j3h + tl_buf_j4h)
     ELSE
-            propagator=one + dt/6.*(tl_buf_j4h + 2.*tl_buf_j2h + 2.*tl_buf_j3h + tl_buf_j4h)
+            propagator=one + dt/6.0d0*(tl_buf_j1h + 2.0d0*tl_buf_j2h + 2.0d0*tl_buf_j3h + tl_buf_j4h)
     END IF        
     t=t+dt
    

@@ -28,7 +28,7 @@ MODULE integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_f0 !< Buffer to hold tendencies at the initial position
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_f1 !< Buffer to hold tendencies at the intermediate position
 
-  PUBLIC :: init_integrator, step
+  PUBLIC :: init_integrator, step, step_rk4
 
 CONTAINS
   
@@ -69,5 +69,30 @@ CONTAINS
     res=y+0.5*(buf_f0+buf_f1)*dt
     t=t+dt
   END SUBROUTINE step
+ 
+  !> Routine to perform an integration step (RK4 algorithm). The incremented time is returned.
+  !> @param y Initial point.
+  !> @param t Actual integration time
+  !> @param dt Integration timestep.
+  !> @param res Final point after the step.
 
+  SUBROUTINE step_rk4(y,t,dt,res)
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
+    REAL(KIND=8), INTENT(INOUT) :: t
+    REAL(KIND=8), INTENT(IN) :: dt
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: res  
+    
+    CALL tendencies(t,y,buf_f0)
+    res=y  + dt/6.0d0*(buf_f0) 
+    buf_y1 = y + 0.5*dt*buf_f0
+    CALL tendencies(t+0.5*dt,buf_y1,buf_f0)
+    res = res + dt/3.0d0*(buf_f0)
+    buf_y1 = y + 0.5*dt*buf_f0
+    CALL tendencies(t+0.5*dt,buf_y1,buf_f0)
+    res = res + dt/3.0d0*(buf_f0)
+    buf_y1 = y + dt*buf_f0
+    CALL tendencies(t+dt,buf_y1,buf_f0)
+    res = res + dt/6.0d0*(buf_f0)
+    t=t+dt  
+  END SUBROUTINE step_rk4
 END MODULE integrator
