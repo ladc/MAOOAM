@@ -1,5 +1,5 @@
 FC = ifort
-FCFLAGS = -assume byterecl
+FCFLAGS = -assume byterecl -O3
 LDFLAGS = -mkl
 
 #Adapt to host system
@@ -33,7 +33,7 @@ MODULE_OBJECTS = $(MODULES:.mod=.o)
 
 all: $(PROGRAMS)
 
-debug: FCFLAGS = -g -O0 -check all -backtrace 
+debug: FCFLAGS = -g -O0 -check all -traceback 
 
 debug: all
 
