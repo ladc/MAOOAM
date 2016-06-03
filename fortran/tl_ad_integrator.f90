@@ -36,7 +36,7 @@ MODULE tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_f1 !< Buffer to hold tendencies at the intermediate position of the tangent linear model
 
     
-  PUBLIC :: init_ad_integrator, ad_step, init_tl_integrator, tl_step
+  PUBLIC :: init_ad_integrator, ad_step, init_tl_integrator, tl_step, tl_prop_step
 
 CONTAINS
 
@@ -103,6 +103,43 @@ CONTAINS
     res=y+0.5*(tl_buf_f0+tl_buf_f1)*dt
     t=t+dt
   END SUBROUTINE tl_step
+
+  !> Routine to perform a simultaneously an integration step (heun algorithm) of the nonlinear and computes the RK4 tangent linear propagator. The boolean variable adjoint allows for an adjoint forward integration. The incremented time is returned.
+  !> @param y Model variable at time t
+  !> @param prop heun Propagator at time t
+  !> @param t Actual integration time
+  !> @param dt Integration timestep.
+  !> @param ynew Model variable at time t+dt
+  SUBROUTINE tl_prop_step(y,propagator,t,dt,ynew,adjoint)
+    REAL(KIND=8), INTENT(INOUT) :: t
+    REAL(KIND=8), INTENT(IN) :: dt
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
+    LOGICAL, INTENT(IN) :: adjoint
+    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: propagator
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: ynew
+ 
+    CALL tendencies(t,y,tl_buf_kA)
+    tl_buf_j1=jacobian_mat(y)
+
+    tl_buf_y1 = y + dt*tl_buf_kA
+
+    CALL tendencies(t+dt,tl_buf_y1,tl_buf_kB)
+    tl_buf_j2=jacobian_mat(tl_buf_y1)
+    
+    tl_buf_j1h=tl_buf_j1
+    tl_buf_j2h=tl_buf_j2
+    call dgemm ('n', 'n', ndim, ndim, ndim, dt, tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
+     
+    ynew=y  + dt/2.0d0*(tl_buf_kA + tl_buf_kB)
+    IF (adjoint) THEN
+            propagator=one - dt/2.0d0*(tl_buf_j1h + tl_buf_j2h)
+    ELSE
+            propagator=one + dt/2.0d0*(tl_buf_j1h + tl_buf_j2h)
+    END IF        
+    t=t+dt
+   
+  END SUBROUTINE tl_prop_step
+
 
   
 END MODULE tl_ad_integrator
