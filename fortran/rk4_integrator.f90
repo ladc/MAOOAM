@@ -52,22 +52,29 @@ CONTAINS
     CALL sparse_mul3(aotensor, y, y, res)
   END SUBROUTINE tendencies
 
-  !> Routine to perform an integration step (Heun algorithm). The incremented time is returned.
+   !> Routine to perform an integration step (RK4 algorithm). The incremented time is returned.
   !> @param y Initial point.
   !> @param t Actual integration time
   !> @param dt Integration timestep.
   !> @param res Final point after the step.
+
   SUBROUTINE step(y,t,dt,res)
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
     REAL(KIND=8), INTENT(INOUT) :: t
     REAL(KIND=8), INTENT(IN) :: dt
-    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: res
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: res  
     
     CALL tendencies(t,y,buf_f0)
-    buf_y1 = y+dt*buf_f0
-    CALL tendencies(t,buf_y1,buf_f1)
-    res=y+0.5*(buf_f0+buf_f1)*dt
-    t=t+dt
+    res=y  + dt/6.0d0*(buf_f0) 
+    buf_y1 = y + 0.5*dt*buf_f0
+    CALL tendencies(t+0.5*dt,buf_y1,buf_f0)
+    res = res + dt/3.0d0*(buf_f0)
+    buf_y1 = y + 0.5*dt*buf_f0
+    CALL tendencies(t+0.5*dt,buf_y1,buf_f0)
+    res = res + dt/3.0d0*(buf_f0)
+    buf_y1 = y + dt*buf_f0
+    CALL tendencies(t+dt,buf_y1,buf_f0)
+    res = res + dt/6.0d0*(buf_f0)
+    t=t+dt  
   END SUBROUTINE step
-
 END MODULE integrator
