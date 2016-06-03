@@ -18,8 +18,8 @@ PROGRAM maooam_lyap
   USE maooam_tl_ad, only: init_tltensor
   USE IC_def, only: load_IC, IC
   USE ICdelta_def, only: load_ICdelta, ICdelta
-  USE integrator, only: init_integrator,step_rk4
-  USE rk4_tl_ad_integrator, only: init_tl_integrator,tl_prop_step
+  USE integrator, only: init_integrator,step
+  USE tl_ad_integrator, only: init_tl_integrator,tl_prop_step
   USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop, & 
                                & init_one,prop,bennettin_step
   USE stat
@@ -45,7 +45,6 @@ PROGRAM maooam_lyap
   CALL init_tl_integrator  ! Initialize tangent linear integrator
   CALL init_lyap ! Initialize Lyapunov computation
   write(FMTX,'(A10,i3,A6)') '(F10.2,4x,',ndim,'E15.5)'
-  write(*,*) FMTX
 
   IF (writeout) THEN
      OPEN(10,file='evol_field.dat')
@@ -58,7 +57,7 @@ PROGRAM maooam_lyap
   PRINT*, 'Starting the transient time evolution... t_trans = ',t_trans
  
   DO WHILE (t<t_trans)
-     CALL step_rk4(X,t,dt,Xnew)
+     CALL step(X,t,dt,Xnew)
      X=Xnew
   END DO
 
@@ -74,12 +73,12 @@ PROGRAM maooam_lyap
      CALL tl_prop_step(X,prop_buf,t,dt,Xnew,.false.) !obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
      X=Xnew
-     CALL step_rk4(Xp,t,dt,Xnewp)
+     CALL step(Xp,t,dt,Xnewp)
      Xp=Xnewp;t=t-dt
      IF (mod(t,tw)<dt) THEN
         IndexBen=IndexBen+1
         CALL  bennettin_step !Performs QR step with prop
-        IF (writeout) WRITE(10,FMTX) t,X(1:ndim)
+        !IF (writeout) WRITE(10,FMTX) t,X(1:ndim)
         IF (writeout) WRITE(11,rec=IndexBen,iostat=WRSTAT) loclyap
         lyapunov=lyapunov+loclyap
         CALL acc(X)
