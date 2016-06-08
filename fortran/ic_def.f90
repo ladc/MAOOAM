@@ -56,11 +56,14 @@ CONTAINS
            CALL random_number(IC)
            IC=IC*size_of_random_noise*10.D0
            IC(0)=1.0d0
+           WRITE(6,*) "*** IC.nml namelist written. Starting with random initial condition !***"
          CASE ('zero')
            IC=0
            IC(0)=1.0d0
+           WRITE(6,*) "*** IC.nml namelist written. Starting with initial condition in IC.nml !***"
          CASE ('read')
-                 !nothing has to be done IC has already the right values
+           !nothing has to be done IC has already the right values
+           WRITE(6,*) "*** IC.nml namelist written. Starting with initial condition in IC.nml !***"
        END SELECT
        CLOSE(8)
     ELSE
