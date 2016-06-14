@@ -26,7 +26,6 @@ MODULE lyap_vectors
   !-----------------------------------------------------!
 
   USE params, only: ndim,dt,tw
-  USE util, only: init_random_seed
   IMPLICIT NONE
 
   PRIVATE
@@ -74,7 +73,6 @@ CONTAINS
   !> and initializes also a random orthogonal matrix for the matrix ensemble. 
   SUBROUTINE init_lyap
     INTEGER :: AllocStat,ilaenv,info
-    REAL :: seed
     lwork=ilaenv(1,"dgeqrf"," ",ndim,ndim,ndim,-1)
     lwork=ndim*lwork
     ALLOCATE(prop_buf(ndim,ndim),lyapunov(ndim),loclyap(ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
@@ -84,8 +82,6 @@ CONTAINS
     lyapunov=0.0d0
     loclyap=0.0d0
     CALL init_one(prop)
-    CALL CPU_TIME(seed)
-    CALL init_random_seed()
     CALL random_number(ensemble)
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
   END SUBROUTINE init_lyap

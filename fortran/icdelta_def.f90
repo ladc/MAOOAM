@@ -12,7 +12,7 @@
 MODULE icdelta_def
 
   USE params, only: natm,noc,ndim
-  USE util, only: str,rstr,init_random_seed
+  USE util, only: str,rstr
   USE inprod_analytic, only:awavenum,owavenum
   IMPLICIT NONE
 
@@ -52,7 +52,6 @@ CONTAINS
        READ(8,nml=RAND)
        SELECT CASE (init_type)
          CASE ('rand')
-           CALL init_random_seed()
            CALL random_number(ICdelta)
            ICdelta=ICdelta*size_of_random_noise*10.D0
            ICdelta(0)=1.0d0
@@ -67,7 +66,6 @@ CONTAINS
        END SELECT
        CLOSE(8)
     ELSE
-       CALL init_random_seed()
        CALL random_number(ICdelta)
        size_of_random_noise=1.D-3
        ICdelta=ICdelta*size_of_random_noise*10.D0
@@ -115,6 +113,7 @@ CONTAINS
     WRITE(8,'(a)') "! Initialisation type.                                                         !"
     WRITE(8,'(a)') "!------------------------------------------------------------------------------!"
     WRITE(8,'(a)') "! type = 'read': use ICdelta; 'rand': random state; 'zero': zero condition "
+    WRITE(8,'(a)') "! The seed is specified in IC.nml"
     WRITE(8,*) ""
     WRITE(8,'(a)') "&RAND"
     WRITE(8,'(a)') "  init_type= '"//init_type//"'" 
