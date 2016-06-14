@@ -5,7 +5,7 @@
 !> Integrators module.
 !
 !> @copyright                                                               
-!> 2016 Lesley De Cruz & Jonathan Demaeyer.
+!> 2016 Lesley De Cruz, Jonathan Demaeyer & Sebastian Schubert.
 !> See LICENSE.txt for license information.                                  
 !
 !---------------------------------------------------------------------------!
@@ -22,7 +22,7 @@
 MODULE rk4_tl_ad_integrator
 
   USE params, only: ndim
-  USE tensor, only:sparse_mul3
+  USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
 
   USE maooam_tl_ad , only: ad,tl,jacobian_mat
@@ -177,10 +177,10 @@ CONTAINS
   SUBROUTINE init_tl_integrator
     INTEGER :: AllocStat,ii
     ALLOCATE(tl_buf_j1h(ndim,ndim),tl_buf_j2h(ndim,ndim),tl_buf_j3h(ndim,ndim),&
-    &tl_buf_j4h(ndim,ndim),tl_buf_j1(ndim,ndim),tl_buf_j2(ndim,ndim),&
-    &tl_buf_j3(ndim,ndim),tl_buf_j4(ndim,ndim),one(ndim,ndim),&
-    &tl_buf_y1(0:ndim),tl_buf_kA(0:ndim),tl_buf_kB(0:ndim),tl_buf_kC(0:ndim),tl_buf_kD(0:ndim), &
-    &tl_buf_kAA(0:ndim),tl_buf_kBB(0:ndim) ,STAT=AllocStat)
+         &tl_buf_j4h(ndim,ndim),tl_buf_j1(ndim,ndim),tl_buf_j2(ndim,ndim),&
+         &tl_buf_j3(ndim,ndim),tl_buf_j4(ndim,ndim),one(ndim,ndim),tl_buf_y11(0:ndim),&
+         &tl_buf_y1(0:ndim),tl_buf_kA(0:ndim),tl_buf_kB(0:ndim),tl_buf_kC(0:ndim),tl_buf_kD(0:ndim), &
+         &tl_buf_kAA(0:ndim),tl_buf_kBB(0:ndim) ,STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
     
     one=0.0d0

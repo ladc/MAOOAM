@@ -5,44 +5,54 @@
  
 &ICLIST
   ! psi variables
-  ICDELTA(1) = -0.9803715                                 ! typ= A, Nx= 0.0, Ny= 1.0
-  ICDELTA(2) = 0.8967724                                  ! typ= K, Nx= 1.0, Ny= 1.0
-  ICDELTA(3) = 0.0581479                                  ! typ= L, Nx= 1.0, Ny= 1.0
-  ICDELTA(4) = -0.7054696                                 ! typ= A, Nx= 0.0, Ny= 2.0
-  ICDELTA(5) = -0.8197689                                 ! typ= K, Nx= 1.0, Ny= 2.0
-  ICDELTA(6) = 0.1496391                                  ! typ= L, Nx= 1.0, Ny= 2.0
-  ICDELTA(7) = 0.9878974                                  ! typ= K, Nx= 2.0, Ny= 1.0
-  ICDELTA(8) = -0.4072905                                 ! typ= L, Nx= 2.0, Ny= 1.0
-  ICDELTA(9) = 0.6753855                                  ! typ= K, Nx= 2.0, Ny= 2.0
-  ICDELTA(10) = -0.7902174                                 ! typ= L, Nx= 2.0, Ny= 2.0
+  ICdelta(1) =   6.567901777230028E-003    ! typ= A, Nx= 0.0, Ny= 1.0
+  ICdelta(2) =   4.064723600401305E-003    ! typ= K, Nx= 1.0, Ny= 1.0
+  ICdelta(3) =   7.830394401952387E-003    ! typ= L, Nx= 1.0, Ny= 1.0
+  ICdelta(4) =   2.975746627402702E-003    ! typ= A, Nx= 0.0, Ny= 2.0
+  ICdelta(5) =   4.475644752583366E-003    ! typ= K, Nx= 1.0, Ny= 2.0
+  ICdelta(6) =   4.282150470643664E-003    ! typ= L, Nx= 1.0, Ny= 2.0
+  ICdelta(7) =   1.307853027790553E-003    ! typ= K, Nx= 2.0, Ny= 1.0
+  ICdelta(8) =   9.952098143253615E-003    ! typ= L, Nx= 2.0, Ny= 1.0
+  ICdelta(9) =   6.348821003758236E-003    ! typ= K, Nx= 2.0, Ny= 2.0
+  ICdelta(10) =   6.816281452488105E-003    ! typ= L, Nx= 2.0, Ny= 2.0
   ! theta variables
-  ICDELTA(11) = 0.8232102                                  ! typ= A, Nx= 0.0, Ny= 1.0
-  ICDELTA(12) = -0.3037391                                 ! typ= K, Nx= 1.0, Ny= 1.0
-  ICDELTA(13) = -0.9389124                                 ! typ= L, Nx= 1.0, Ny= 1.0
-  ICDELTA(14) = -0.2931471                                 ! typ= A, Nx= 0.0, Ny= 2.0
-  ICDELTA(15) = -0.9182196                                 ! typ= K, Nx= 1.0, Ny= 2.0
-  ICDELTA(16) = -0.5119152                                 ! typ= L, Nx= 1.0, Ny= 2.0
-  ICDELTA(17) = 0.2426548                                  ! typ= K, Nx= 2.0, Ny= 1.0
-  ICDELTA(18) = 0.3070507                                  ! typ= L, Nx= 2.0, Ny= 1.0
-  ICDELTA(19) = 0.6064520                                  ! typ= K, Nx= 2.0, Ny= 2.0
-  ICDELTA(20) = 0.6403313                                  ! typ= L, Nx= 2.0, Ny= 2.0
+  ICdelta(11) =   6.567901777230028E-003    ! typ= A, Nx= 0.0, Ny= 1.0
+  ICdelta(12) =   4.064723600401305E-003    ! typ= K, Nx= 1.0, Ny= 1.0
+  ICdelta(13) =   7.830394401952387E-003    ! typ= L, Nx= 1.0, Ny= 1.0
+  ICdelta(14) =   2.975746627402702E-003    ! typ= A, Nx= 0.0, Ny= 2.0
+  ICdelta(15) =   4.475644752583366E-003    ! typ= K, Nx= 1.0, Ny= 2.0
+  ICdelta(16) =   4.282150470643664E-003    ! typ= L, Nx= 1.0, Ny= 2.0
+  ICdelta(17) =   1.307853027790553E-003    ! typ= K, Nx= 2.0, Ny= 1.0
+  ICdelta(18) =   9.952098143253615E-003    ! typ= L, Nx= 2.0, Ny= 1.0
+  ICdelta(19) =   6.348821003758236E-003    ! typ= K, Nx= 2.0, Ny= 2.0
+  ICdelta(20) =   6.816281452488105E-003    ! typ= L, Nx= 2.0, Ny= 2.0
   ! A variables
-  ICDELTA(21) = 0.0548239                                  ! Nx= 0.5, Ny= 1.0
-  ICDELTA(22) = -0.5740376                                 ! Nx= 0.5, Ny= 2.0
-  ICDELTA(23) = 0.1534200                                  ! Nx= 0.5, Ny= 3.0
-  ICDELTA(24) = 0.5347285                                  ! Nx= 0.5, Ny= 4.0
-  ICDELTA(25) = -0.8134389                                 ! Nx= 1.0, Ny= 1.0
-  ICDELTA(26) = 0.5373740                                  ! Nx= 1.0, Ny= 2.0
-  ICDELTA(27) = -0.3520541                                 ! Nx= 1.0, Ny= 3.0
-  ICDELTA(28) = -0.9712429                                 ! Nx= 1.0, Ny= 4.0
+  ICdelta(21) =   4.680394813340874E-003    ! Nx= 0.5, Ny= 1.0
+  ICdelta(22) =   1.293463134180923E-003    ! Nx= 0.5, Ny= 2.0
+  ICdelta(23) =   1.408423045517855E-003    ! Nx= 0.5, Ny= 3.0
+  ICdelta(24) =   3.354021271267810E-003    ! Nx= 0.5, Ny= 4.0
+  ICdelta(25) =   8.182374842232944E-003    ! Nx= 1.0, Ny= 1.0
+  ICdelta(26) =   3.793921518364601E-003    ! Nx= 1.0, Ny= 2.0
+  ICdelta(27) =   3.185096322900231E-003    ! Nx= 1.0, Ny= 3.0
+  ICdelta(28) =   7.763038193740981E-003    ! Nx= 1.0, Ny= 4.0
   ! T variables
-  ICDELTA(29) = 0.3263869                                  ! Nx= 0.5, Ny= 1.0
-  ICDELTA(30) = -0.4139895                                 ! Nx= 0.5, Ny= 2.0
-  ICDELTA(31) = 0.0846424                                  ! Nx= 0.5, Ny= 3.0
-  ICDELTA(32) = 0.5926833                                  ! Nx= 0.5, Ny= 4.0
-  ICDELTA(33) = -0.7678924                                 ! Nx= 1.0, Ny= 1.0
-  ICDELTA(34) = 0.0410004                                  ! Nx= 1.0, Ny= 2.0
-  ICDELTA(35) = -0.9066339                                 ! Nx= 1.0, Ny= 3.0
-  ICDELTA(36) = 0.2114391                                  ! Nx= 1.0, Ny= 4.0
+  ICdelta(29) =   5.519695239688303E-003    ! Nx= 0.5, Ny= 1.0
+  ICdelta(30) =   5.016490084306167E-004    ! Nx= 0.5, Ny= 2.0
+  ICdelta(31) =   2.356105749620580E-003    ! Nx= 0.5, Ny= 3.0
+  ICdelta(32) =   8.712007534001304E-003    ! Nx= 0.5, Ny= 4.0
+  ICdelta(33) =   6.507039327685869E-004    ! Nx= 1.0, Ny= 1.0
+  ICdelta(34) =   5.242965740921006E-003    ! Nx= 1.0, Ny= 2.0
+  ICdelta(35) =   5.205882313894096E-003    ! Nx= 1.0, Ny= 3.0
+  ICdelta(36) =   3.006121495515254E-004    ! Nx= 1.0, Ny= 4.0
+&END
+ 
+!------------------------------------------------------------------------------!
+! Initialisation type.                                                         !
+!------------------------------------------------------------------------------!
+! type = 'read': use ICdelta; 'rand': random state; 'zero': zero condition 
+ 
+&RAND
+  init_type= 'rand'
+  size_of_random_noise =    0.1000000000000000D-02
 &END
  

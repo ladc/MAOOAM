@@ -27,7 +27,7 @@ endif
 
 PROGRAMS = maooam_lyap maooam maooam_tl maooam_lyap
 
-MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod lyap_vectors.mod rk4_integrator.mod
+MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod lyap_vectors.mod rk4_integrator.f90
 MODULE_OBJECTS = $(MODULES:.mod=.o)
 
 

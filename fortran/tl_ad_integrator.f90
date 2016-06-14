@@ -5,7 +5,7 @@
 !> Integrators module.
 !
 !> @copyright                                                               
-!> 2016 Lesley De Cruz & Jonathan Demaeyer.
+!> 2016 Lesley De Cruz, Jonathan Demaeyer & Sebastian Schubert.
 !> See LICENSE.txt for license information.                                  
 !
 !---------------------------------------------------------------------------!
@@ -22,7 +22,10 @@
 MODULE tl_ad_integrator
 
   USE params, only: ndim
-  USE maooam_tl_ad, only: ad,tl
+  USE tensor, only: sparse_mul3
+  USE aotensor_def, only: aotensor
+
+  USE maooam_tl_ad, only: ad,tl,jacobian_mat
   IMPLICIT NONE
 
   PRIVATE
@@ -35,10 +38,31 @@ MODULE tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_f0 !< Buffer to hold tendencies at the initial position of the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: tl_buf_f1 !< Buffer to hold tendencies at the intermediate position of the tangent linear model
 
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: tl_buf_j1 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: tl_buf_j2 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: tl_buf_j1h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: tl_buf_j2h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
+
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: one        !< unit matrix 
+
     
   PUBLIC :: init_ad_integrator, ad_step, init_tl_integrator, tl_step, tl_prop_step
 
 CONTAINS
+
+  !> Routine computing the tendencies of the nonlinear model
+  !> @param t Time at which the tendencies have to be computed. Actually not needed for autonomous systems.
+  !> @param y Point at which the tendencies have to be computed.
+  !> @param res vector to store the result.
+  !> @remark Note that it is NOT safe to pass `y` as a result bufer, 
+  !> as this operation does multiple passes.
+  SUBROUTINE tendencies(t,y,res)
+    REAL(KIND=8), INTENT(IN) :: t
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(IN) :: y
+    REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: res
+    CALL sparse_mul3(aotensor, y, y, res)
+  END SUBROUTINE tendencies
+
 
   !-----------------------------------------------------!
   !                                                     !
@@ -118,19 +142,19 @@ CONTAINS
     REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: propagator
     REAL(KIND=8), DIMENSION(0:ndim), INTENT(OUT) :: ynew
  
-    CALL tendencies(t,y,tl_buf_kA)
+    CALL tendencies(t,y,tl_buf_f0)
     tl_buf_j1=jacobian_mat(y)
 
-    tl_buf_y1 = y + dt*tl_buf_kA
+    tl_buf_y1 = y + dt*tl_buf_f0
 
-    CALL tendencies(t+dt,tl_buf_y1,tl_buf_kB)
+    CALL tendencies(t+dt,tl_buf_y1,tl_buf_f1)
     tl_buf_j2=jacobian_mat(tl_buf_y1)
     
     tl_buf_j1h=tl_buf_j1
     tl_buf_j2h=tl_buf_j2
     call dgemm ('n', 'n', ndim, ndim, ndim, dt, tl_buf_j2, ndim,tl_buf_j1h, ndim,1.0d0, tl_buf_j2h, ndim)
      
-    ynew=y  + dt/2.0d0*(tl_buf_kA + tl_buf_kB)
+    ynew=y  + dt/2.0d0*(tl_buf_f0 + tl_buf_f1)
     IF (adjoint) THEN
             propagator=one - dt/2.0d0*(tl_buf_j1h + tl_buf_j2h)
     ELSE

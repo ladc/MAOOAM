@@ -6,7 +6,7 @@
 !> and tangent linear model.
 !
 !> @copyright                                                               
-!> 2015 Lesley De Cruz & Jonathan Demaeyer.
+!> 2016 Lesley De Cruz & Jonathan Demaeyer.
 !> See LICENSE.txt for license information.                                  
 !
 !---------------------------------------------------------------------------!
@@ -28,7 +28,8 @@ PROGRAM maooam_tl
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: deltaXnew    !< Updated state variable
   REAL(KIND=8) :: t=0.D0                             !< Time variable
 
-  PRINT*, 'Model MAOOAM v1.0'
+  PRINT*, 'Model MAOOAM v1.0 -'
+  PRINT*, '         Simultaneous integration of the original and TL models'
   PRINT*, 'Loading information...'
 
   CALL init_aotensor    ! Compute the tensors
@@ -49,7 +50,6 @@ PROGRAM maooam_tl
 
   X=IC
   deltaX=ICdelta
-
   PRINT*, 'Starting the transient time evolution...'
 
   DO WHILE (t<t_trans)
