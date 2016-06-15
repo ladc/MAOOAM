@@ -16,7 +16,7 @@ PROGRAM maooam_lyap
   USE maooam_tl_ad, only: init_tltensor
   USE IC_def, only: load_IC, IC
   USE integrator, only: init_integrator,step
-  USE tl_ad_integrator, only: init_tl_integrator,tl_prop_step
+  USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
   USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop, & 
                                & init_one,prop,bennettin_step
   USE stat
@@ -39,7 +39,7 @@ PROGRAM maooam_lyap
   CALL load_IC          ! Load the initial condition
 
   CALL init_integrator  ! Initialize the integrator
-  CALL init_tl_integrator  ! Initialize tangent linear integrator
+  CALL init_tl_ad_integrator  ! Initialize tangent linear integrator
   CALL init_lyap        ! Initialize Lyapunov computation
   write(FMTX,'(A10,i3,A6)') '(F10.2,4x,',ndim,'E15.5)'
 
@@ -68,7 +68,7 @@ PROGRAM maooam_lyap
   IndexBen=0
   DO WHILE (t<t_run)
 
-     CALL tl_prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
+     CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
      X=Xnew
      CALL step(Xp,t,dt,Xnewp)

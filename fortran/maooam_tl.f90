@@ -18,7 +18,7 @@ PROGRAM maooam_tl
   USE IC_def, only: load_IC, IC
   USE ICdelta_def, only: load_ICdelta, ICdelta
   USE integrator, only: init_integrator,step
-  USE rk4_tl_ad_integrator, only: init_tl_integrator,evolve_tl_step
+  USE rk4_tl_ad_integrator, only: init_tl_ad_integrator,evolve_tl_step
   USE stat
   IMPLICIT NONE
 
@@ -28,8 +28,8 @@ PROGRAM maooam_tl
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: deltaXnew    !< Updated state variable
   REAL(KIND=8) :: t=0.D0                             !< Time variable
 
-  PRINT*, 'Model MAOOAM v1.0 -'
-  PRINT*, '         Simultaneous integration of the original and TL models'
+  PRINT*, 'Model MAOOAM v1.0'
+  PRINT*, '       - Simultaneous integration of the original and TL models'
   PRINT*, 'Loading information...'
 
   CALL init_aotensor    ! Compute the tensors
@@ -39,7 +39,7 @@ PROGRAM maooam_tl
   CALL load_ICdelta
 
   CALL init_integrator  ! Initialize the integrator
-  CALL init_tl_integrator  ! Initialize the integrator
+  CALL init_tl_ad_integrator  ! Initialize the integrator
 
   IF (writeout) THEN
      OPEN(10,file='evol_field.dat')
