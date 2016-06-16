@@ -34,7 +34,7 @@ MODULE lyap_vectors
 
   PRIVATE
   
-  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,prop,init_lyap,multiply_prop,init_one
+  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,init_lyap,multiply_prop,init_one,get_prop
  
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap    !< Buffer containing the local Lyapunov exponent
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov   !< Buffer containing the averaged Lyapunov exponent
@@ -95,7 +95,7 @@ CONTAINS
   !> module and saves the result to prop_mul
   !> @param prop_mul local propagator to multiply with the global one
   SUBROUTINE multiply_prop(prop_mul)
-    REAL(KIND=8), dimension(ndim,ndim),intent(in) :: prop_mul
+    REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(IN) :: prop_mul
     prop_buf=prop    
     CALL DGEMM ('n', 'n', ndim, ndim, ndim, 1.0d0, prop_mul, ndim,prop_buf, ndim,0.0d0, prop, ndim)
   END SUBROUTINE multiply_prop
@@ -130,6 +130,12 @@ CONTAINS
     CALL init_one(prop) 
     
    END SUBROUTINE benettin_step
+
+   !> Routine that returns the current global propagator
+   SUBROUTINE get_prop(prop_ret)
+     REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(OUT) :: prop_ret
+     prop_ret=prop
+   END SUBROUTINE get_prop
 
 END MODULE lyap_vectors
      

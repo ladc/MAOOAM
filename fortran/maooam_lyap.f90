@@ -18,7 +18,7 @@ PROGRAM maooam_lyap
   USE integrator, only: init_integrator,step
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
   USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop, & 
-                               & init_one,prop,benettin_step
+                               & init_one,benettin_step
   USE stat
   IMPLICIT NONE
 
