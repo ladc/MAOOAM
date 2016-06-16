@@ -53,6 +53,7 @@ CONTAINS
        SELECT CASE (init_type)
          CASE ('rand')
            CALL random_number(ICdelta)
+           ICdelta=2*(ICdelta-0.5)
            ICdelta=ICdelta*size_of_random_noise*10.D0
            ICdelta(0)=1.0d0
            WRITE(6,*) "*** ICdelta.nml namelist written. Starting with random initial condition !***"
@@ -67,6 +68,7 @@ CONTAINS
        CLOSE(8)
     ELSE
        CALL random_number(ICdelta)
+       ICdelta=2*(ICdelta-0.5)
        size_of_random_noise=1.D-3
        ICdelta=ICdelta*size_of_random_noise*10.D0
        ICdelta(0)=1.0d0

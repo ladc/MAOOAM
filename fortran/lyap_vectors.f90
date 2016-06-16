@@ -83,6 +83,7 @@ CONTAINS
     loclyap=0.0d0
     CALL init_one(prop)
     CALL random_number(ensemble)
+    ensemble=2*(ensemble-0.5)
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
   END SUBROUTINE init_lyap
 

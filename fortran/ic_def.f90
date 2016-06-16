@@ -57,6 +57,7 @@ CONTAINS
          CASE ('seed')
            CALL random_seed(put=seed)
            CALL random_number(IC)
+           IC=2*(IC-0.5)
            IC=IC*size_of_random_noise*10.D0
            IC(0)=1.0d0
            WRITE(6,*) "*** IC.nml namelist written. Starting with 'seeded' random initial condition !***"
@@ -64,6 +65,7 @@ CONTAINS
            CALL init_random_seed()
            CALL random_seed(get=seed)
            CALL random_number(IC)
+           IC=2*(IC-0.5)
            IC=IC*size_of_random_noise*10.D0
            IC(0)=1.0d0
            WRITE(6,*) "*** IC.nml namelist written. Starting with random initial condition !***"
