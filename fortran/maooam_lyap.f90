@@ -18,7 +18,7 @@ PROGRAM maooam_lyap
   USE integrator, only: init_integrator,step
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
   USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop, & 
-                               & init_one,prop,bennettin_step
+                               & init_one,prop,benettin_step
   USE stat
   IMPLICIT NONE
 
@@ -76,7 +76,7 @@ PROGRAM maooam_lyap
      t=t-dt ! Time was incremented one step too much
      IF (mod(t,rescaling_time)<dt) THEN
         IndexBen=IndexBen+1
-        CALL  bennettin_step ! Performs QR step with prop
+        CALL  benettin_step ! Performs QR step with prop
         IF (writeout) WRITE(11,rec=IndexBen,iostat=WRSTAT) loclyap
         lyapunov=lyapunov+loclyap
         CALL acc(X)

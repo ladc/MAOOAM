@@ -10,9 +10,13 @@
 !---------------------------------------------------------------------------!
 !                                                                           
 !>  @remark                                                                 
-!>  This module contains the necessary tools to perform the Bennettin
-!>  steps to compute the lyapunov exponents. (Ginelli for CLV will be added
-!>  later) 
+!>  This module contains the necessary tools to perform the Benettin
+!>  steps to compute the lyapunov exponents. (Ginelli for CLV will be added later)
+!>
+!>  References :
+!>  Benettin, G., Galgani, L., Giorgilli, A., & Strelcyn, J. M. (1980). Lyapunov
+!>  characteristic exponents for smooth dynamical systems; a method for computing
+!>  all of them. Part 2: Numerical application. \a Meccanica \a, 15, 21-30.
 !                                                                           
 !---------------------------------------------------------------------------
 
@@ -30,7 +34,7 @@ MODULE lyap_vectors
 
   PRIVATE
   
-  PUBLIC :: bennettin_step,loclyap,lyapunov,ensemble,prop,init_lyap,multiply_prop,init_one
+  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,prop,init_lyap,multiply_prop,init_one
  
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap    !< Buffer containing the local Lyapunov exponent
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov   !< Buffer containing the averaged Lyapunov exponent
@@ -96,12 +100,12 @@ CONTAINS
     CALL DGEMM ('n', 'n', ndim, ndim, ndim, 1.0d0, prop_mul, ndim,prop_buf, ndim,0.0d0, prop, ndim)
   END SUBROUTINE multiply_prop
 
-  !> Performs the bennettin step in integration. Multiplies the aggregated
+  !> Performs the benettin step in integration. Multiplies the aggregated
   !> propagators in prop with ensemble and performs QR decomposition (Gram-Schmidt
   !> orthogonalization gives Q and upper triangular matrix R). Computes also the
   !> Lyapunov exponents via the diagonal of R. WATCH OUT: prop is changed during
   !> the subroutine and restored to a unit matrix
-  SUBROUTINE bennettin_step
+  SUBROUTINE benettin_step
     INTEGER :: info,k
 
     ! Multiply the Propagator prop from the right side with the non transposed q matrix
@@ -125,7 +129,7 @@ CONTAINS
     ! Initialise prop again with unit matrix
     CALL init_one(prop) 
     
-   END SUBROUTINE bennettin_step
+   END SUBROUTINE benettin_step
 
 END MODULE lyap_vectors
      
