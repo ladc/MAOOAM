@@ -52,10 +52,11 @@ PROGRAM maooam_lyap
   ALLOCATE(Xp(0:ndim),Xnewp(0:ndim))
   X=IC
   PRINT*, 'Starting the transient time evolution... t_trans = ',t_trans
- 
+
   DO WHILE (t<t_trans)
      CALL step(X,t,dt,Xnew)
      X=Xnew
+     IF (mod(t/t_trans*1000.d0,dt)<dt) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_trans*10.d0**2.d0,char(13)
   END DO
 
   PRINT*, 'Starting the time evolution... t_run = ',t_run
@@ -87,7 +88,9 @@ PROGRAM maooam_lyap
         !IF (writeout) WRITE(10,FMTX) t,X(1:ndim) 
         CONTINUE
      END IF
-  END DO
+   
+     IF (mod(t/t_run*1000.d0,dt)<dt) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*10.d0**2.d0,char(13)
+   END DO
   lyapunov=lyapunov/dble(IndexBen)
 
   PRINT*, 'Evolution finished.'
