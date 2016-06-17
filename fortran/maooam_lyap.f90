@@ -27,6 +27,7 @@ PROGRAM maooam_lyap
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop_buf    !< Buffer for Integrator propagator
   REAL(KIND=8) :: t=0.D0                                   !< Time variable
   REAL(KIND=8) :: resc=1.D-9                               !< Variable rescaling factor for the divergence method
+  REAL(KIND=8) :: t_up
   INTEGER :: IndexBen,WRSTAT
   CHARACTER(LEN=19) :: FMTX
 
@@ -42,6 +43,7 @@ PROGRAM maooam_lyap
   CALL init_tl_ad_integrator  ! Initialize tangent linear integrator
   CALL init_lyap        ! Initialize Lyapunov computation
   write(FMTX,'(A10,i3,A6)') '(F10.2,4x,',ndim,'E15.5)'
+  t_up=dt/t_trans*100.D0
 
   IF (writeout) THEN
      OPEN(10,file='evol_field.dat')
@@ -57,7 +59,7 @@ PROGRAM maooam_lyap
   DO WHILE (t<t_trans)
      CALL step(X,t,dt,Xnew)
      X=Xnew
-     IF (mod(t/t_trans*1000.d0,dt)<dt) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_trans*10.d0**2.d0,char(13)
+     IF (mod(t/t_trans*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_trans*100.D0,char(13)
   END DO
 
   PRINT*, 'Starting the time evolution... t_run = ',t_run
@@ -68,6 +70,7 @@ PROGRAM maooam_lyap
   Xp(1:ndim)=X(1:ndim)+resc/sqrt(dble(ndim))
   t=0.D0
   IndexBen=0
+  t_up=dt/t_run*100.D0
   DO WHILE (t<t_run)
 
      CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
@@ -87,11 +90,11 @@ PROGRAM maooam_lyap
      END IF
      IF (mod(t,tw)<dt) THEN
         !! Uncomment if you want the trajectory (may generate a huge file!)
-        !IF (writeout) WRITE(10,FMTX) t,X(1:ndim) 
+        IF (writeout) WRITE(10,FMTX) t,X(1:ndim) 
         CONTINUE
      END IF
    
-     IF (mod(t/t_run*1000.d0,dt)<dt) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*10.d0**2.d0,char(13)
+     IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
   END DO
   PRINT*, 'Evolution finished.'
 
