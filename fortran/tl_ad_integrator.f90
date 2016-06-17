@@ -21,6 +21,7 @@
 
 MODULE tl_ad_integrator
 
+  USE util, only: init_one
   USE params, only: ndim
   USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
@@ -42,7 +43,6 @@ MODULE tl_ad_integrator
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j2 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j1h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j2h !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
-
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: one        !< unit matrix 
 
     
@@ -68,8 +68,10 @@ CONTAINS
     INTEGER :: AllocStat
     ALLOCATE(buf_y1(0:ndim),buf_f0(0:ndim),buf_f1(0:ndim),&
          &buf_y11(0:ndim),buf_f00(0:ndim),buf_f11(0:ndim),&
+         &buf_j1(ndim,ndim),buf_j2(ndim,ndim),one(ndim,ndim),&
          &buf_j1h(ndim,ndim),buf_j2h(ndim,ndim),STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
+    CALL init_one(one)
   END SUBROUTINE init_tl_ad_integrator
 
 
@@ -205,7 +207,7 @@ CONTAINS
     
     buf_j1h=buf_j1
     buf_j2h=buf_j2
-    call dgemm ('n', 'n', ndim, ndim, ndim, dt, buf_j2, ndim,buf_j1h, ndim,1.0d0, buf_j2h, ndim)
+    CALL dgemm ('n', 'n', ndim, ndim, ndim, dt, buf_j2, ndim,buf_j1h, ndim,1.0d0, buf_j2h, ndim)
      
     ynew=y  + dt/2.0d0*(buf_f0 + buf_f1)
     IF (adjoint) THEN

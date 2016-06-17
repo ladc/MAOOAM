@@ -30,11 +30,12 @@ MODULE lyap_vectors
   !-----------------------------------------------------!
 
   USE params, only: ndim,dt,tw
+  USE util, only: init_one
   IMPLICIT NONE
 
   PRIVATE
   
-  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,init_lyap,multiply_prop,init_one,get_prop
+  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,init_lyap,multiply_prop,get_prop
  
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap    !< Buffer containing the local Lyapunov exponent
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov   !< Buffer containing the averaged Lyapunov exponent
@@ -61,17 +62,6 @@ CONTAINS
  !                                                     !
  !-----------------------------------------------------!
 
- !> Initialize a matrix A of dimension (ndim,ndim) as a unit matrix
- SUBROUTINE init_one(A)
-    REAL(KIND=8), dimension(ndim,ndim),INTENT(INOUT) :: A
-    INTEGER :: i
-
-    A=0.0d0
-    DO i=1,ndim
-      A(i,i)=1.0d0
-    END DO
-
-  END SUBROUTINE init_one
 
   !> Initialize Lyapunov computation (possibly also vectors in later version)
   !> and initializes also a random orthogonal matrix for the matrix ensemble. 

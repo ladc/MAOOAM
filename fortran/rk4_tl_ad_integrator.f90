@@ -21,6 +21,7 @@
 
 MODULE rk4_tl_ad_integrator
 
+  USE util, only: init_one
   USE params, only: ndim
   USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
@@ -75,12 +76,7 @@ CONTAINS
          &buf_y1(0:ndim),buf_kA(0:ndim),buf_kB(0:ndim),buf_kC(0:ndim),buf_kD(0:ndim), &
          &buf_kAA(0:ndim),buf_kBB(0:ndim) ,STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
-    
-    one=0.0d0
-    do ii=1,ndim
-      one(ii,ii)=1.0d0
-    enddo
-
+    CALL init_one(one)
   END SUBROUTINE init_tl_ad_integrator
 
 

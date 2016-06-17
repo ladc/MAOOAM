@@ -15,7 +15,7 @@ MODULE util
 
   PRIVATE
 
-  PUBLIC :: str,rstr,init_random_seed
+  PUBLIC :: str,rstr,init_random_seed,init_one
 
 CONTAINS
     
@@ -92,5 +92,18 @@ CONTAINS
       lcg = int(mod(s, int(huge(0), int64)), kind(0))
     END FUNCTION lcg
   END SUBROUTINE init_random_seed
+
+
+  !> Initialize a square matrix A as a unit matrix
+  SUBROUTINE init_one(A)
+     REAL(KIND=8), DIMENSION(:,:),INTENT(INOUT) :: A
+     INTEGER :: i,n
+     n=size(A,1)
+     A=0.0d0
+     DO i=1,n
+       A(i,i)=1.0d0
+     END DO
+
+  END SUBROUTINE init_one
 
 END MODULE util

@@ -17,8 +17,7 @@ PROGRAM maooam_lyap
   USE IC_def, only: load_IC, IC
   USE integrator, only: init_integrator,step
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
-  USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop, & 
-                               & init_one,benettin_step
+  USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop,benettin_step
   USE stat
   IMPLICIT NONE
 
