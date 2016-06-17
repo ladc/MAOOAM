@@ -19,6 +19,7 @@ PROGRAM maooam_lyap
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
   USE lyap_vectors, only: lyapunov,loclyap,init_lyap,multiply_prop,benettin_step
   USE stat
+  USE lyap_stat
   IMPLICIT NONE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: X,Xp          !< State variable in the model
@@ -62,6 +63,7 @@ PROGRAM maooam_lyap
   PRINT*, 'Starting the time evolution... t_run = ',t_run
 
   CALL init_stat
+  CALL lyap_init_stat
   Xp(0)=1.0d0
   Xp(1:ndim)=X(1:ndim)+resc/sqrt(dble(ndim))
   t=0.D0
@@ -78,7 +80,7 @@ PROGRAM maooam_lyap
         IndexBen=IndexBen+1
         CALL  benettin_step ! Performs QR step with prop
         IF (writeout) WRITE(11,rec=IndexBen,iostat=WRSTAT) loclyap
-        lyapunov=lyapunov+loclyap
+        CALL lyap_acc(loclyap)
         CALL acc(X)
         write(12,*) log(sqrt(sum((X(1:ndim)-Xp(1:ndim))**2.0d0))/resc)/tw
         Xp(1:ndim)=X(1:ndim)+(Xp(1:ndim)-X(1:ndim))/sqrt(sum((X(1:ndim)-Xp(1:ndim))**2.0d0))*resc
@@ -90,24 +92,27 @@ PROGRAM maooam_lyap
      END IF
    
      IF (mod(t/t_run*1000.d0,dt)<dt) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*10.d0**2.d0,char(13)
-   END DO
-  lyapunov=lyapunov/dble(IndexBen)
-
+  END DO
   PRINT*, 'Evolution finished.'
 
   IF (writeout) CLOSE(10)
   IF (writeout) CLOSE(11)
   IF (writeout) CLOSE(12)
 
-  IF (writeout) OPEN(10,file='mean_lyapunov.dat')
+  IF (writeout) THEN
+     OPEN(10,file='mean_lyapunov.dat')
+     lyapunov=lyap_mean()
+     WRITE(10,*) 'mean',lyapunov(1:ndim)
+     lyapunov=lyap_var()
+     WRITE(10,*) 'var',lyapunov(1:ndim)
+  END IF
 
-  IF (writeout) WRITE(10,*) lyapunov(1:ndim)
-  IF (writeout) CLOSE(10)
-
-IF (writeout) OPEN(10,file='mean_field.dat')
-
-  X=mean()
-  IF (writeout) WRITE(10,*) X(1:ndim)
-  IF (writeout) CLOSE(10)
+  IF (writeout) THEN
+     OPEN(10,file='mean_field.dat')
+     X=mean()
+     WRITE(10,*) 'mean',X(1:ndim)
+     X=var()
+     WRITE(10,*) 'var',X(1:ndim)
+  END IF
 
 END PROGRAM maooam_lyap
