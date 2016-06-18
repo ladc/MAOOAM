@@ -99,7 +99,7 @@ CONTAINS
     WRITE(8,'(a)') "&ICLIST"
     WRITE(8,*) " ! psi variables"
     DO i=1,natm
-       WRITE(8,*) " IC("//TRIM(str(i))//") = ",IC(i+natm),"   ! typ= "&
+       WRITE(8,*) " IC("//TRIM(str(i))//") = ",IC(i),"   ! typ= "&
             &//awavenum(i)%typ//", Nx= "//TRIM(rstr(awavenum(i)&
             &%Nx,fm))//", Ny= "//TRIM(rstr(awavenum(i)%Ny,fm))
     END DO
