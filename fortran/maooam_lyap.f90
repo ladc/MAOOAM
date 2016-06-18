@@ -85,7 +85,7 @@ PROGRAM maooam_lyap
         IF (writeout) WRITE(11,rec=IndexBen,iostat=WRSTAT) loclyap
         CALL lyap_acc(loclyap)
         CALL acc(X)
-        write(12,*) log(sqrt(sum((X(1:ndim)-Xp(1:ndim))**2.0d0))/resc)/tw
+        write(12,*) log(sqrt(sum((X(1:ndim)-Xp(1:ndim))**2.0d0))/resc)/rescaling_time
         Xp(1:ndim)=X(1:ndim)+(Xp(1:ndim)-X(1:ndim))/sqrt(sum((X(1:ndim)-Xp(1:ndim))**2.0d0))*resc
      END IF
      IF (mod(t,tw)<dt) THEN

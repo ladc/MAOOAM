@@ -29,7 +29,7 @@ MODULE lyap_vectors
   !                                                     !
   !-----------------------------------------------------!
 
-  USE params, only: ndim,dt,tw
+  USE params, only: ndim,dt,rescaling_time
   USE util, only: init_one
   IMPLICIT NONE
 
@@ -109,7 +109,7 @@ CONTAINS
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
     
     DO k=1,ndim
-      loclyap(k)=log(abs(ensemble(k,k)))/tw
+      loclyap(k)=log(abs(ensemble(k,k)))/rescaling_time
     END DO
 
     !
