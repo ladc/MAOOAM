@@ -11,7 +11,7 @@
 !                                                                           
 !>  @remark                                                                 
 !>  This module contains the necessary tools to perform the Benettin
-!>  steps to compute the lyapunov exponents. (Ginelli for CLV will be added later)
+!>  steps to compute the lyapunov_BLV exponents. (Ginelli for CLV will be added later)
 !>
 !>  References :
 !>  Benettin, G., Galgani, L., Giorgilli, A., & Strelcyn, J. M. (1980). Lyapunov
@@ -29,16 +29,20 @@ MODULE lyap_vectors
   !                                                     !
   !-----------------------------------------------------!
 
-  USE params, only: ndim,dt,rescaling_time
+  USE params, only: ndim,dt,rescaling_time, compute_BLV, conv_BLV,compute_FLV, conv_FLV,compute_CLV, conv_CLV,length_lyap,offset 
   USE util, only: init_one
   IMPLICIT NONE
 
   PRIVATE
   
-  PUBLIC :: benettin_step,loclyap,lyapunov,ensemble,init_lyap,multiply_prop,get_prop
+  PUBLIC :: benettin_step,loclyap_BLV,lyapunov_BLV,ensemble,init_lyap,multiply_prop,get_prop
  
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap    !< Buffer containing the local Lyapunov exponent
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov   !< Buffer containing the averaged Lyapunov exponent
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_BLV    !< Buffer containing the local Lyapunov exponenti of BLV
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov_BLV   !< Buffer containing the averaged Lyapunov exponent of BLV
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_FLV    !< Buffer containing the local Lyapunov exponent of FLV
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov_FLV   !< Buffer containing the averaged Lyapunov exponent Ff FLV
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_CLV    !< Buffer containing the local Lyapunov exponent of CLV
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov_CLV   !< Buffer containing the averaged Lyapunov exponent of CLV
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: ensemble !< Buffer containing the QR decompsoition of the ensemble
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop     !< Buffer holding the propagator matrix
   
@@ -69,16 +73,18 @@ CONTAINS
     INTEGER :: AllocStat,ilaenv,info
     lwork=ilaenv(1,"dgeqrf"," ",ndim,ndim,ndim,-1)
     lwork=ndim*lwork
-    ALLOCATE(prop_buf(ndim,ndim),lyapunov(ndim),loclyap(ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
+    ALLOCATE(prop_buf(ndim,ndim),lyapunov_BLV(ndim),loclyap_BLV(ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
     & work2(ndim),work(lwork),STAT=AllocStat) 
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
 
-    lyapunov=0.0d0
-    loclyap=0.0d0
+    lyapunov_BLV=0.0d0
+    loclyap_BLV=0.0d0
     CALL init_one(prop)
-    CALL random_number(ensemble)
-    ensemble=2*(ensemble-0.5)
-    CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
+    IF (compute_BLV .OR. compute_FLV .OR. compute_CLV) THEN
+      CALL random_number(ensemble)
+      ensemble=2*(ensemble-0.5)
+      CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
+    END IF
   END SUBROUTINE init_lyap
 
   !> Multiplies prop_mul from the left with the prop matrix defined in this
@@ -109,7 +115,7 @@ CONTAINS
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
     
     DO k=1,ndim
-      loclyap(k)=log(abs(ensemble(k,k)))/rescaling_time
+      loclyap_BLV(k)=log(abs(ensemble(k,k)))/rescaling_time
     END DO
 
     !
