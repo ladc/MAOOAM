@@ -15,7 +15,7 @@
 !  Parameters for the ocean
 &OPARAMS
   GP = 3.1D-2        !  reduced gravity
-  R = 1.D-8          !  frictional coefficient at the bottom of the ocean	
+  R = 1.D-7          !  frictional coefficient at the bottom of the ocean	
   H = 5.D2           !  depth of the water layer of the ocean
   D = 1.D-8          !  the coupling parameter (should be divided by f0 in order to be adimensional)
 &END
@@ -37,7 +37,7 @@
 !  Temperature-related parameters for the atmosphere
 &TAPARAMS
   GA = 1.D7          !  Specific heat capacity of the atmosphere
-  CA = 100.D0        ! Constant short-wave radiation of the atmosphere
+  CA = 87.5D0        ! Constant short-wave radiation of the atmosphere
   EPSA = 0.76D0      !  Emissivity coefficient for the grey-body atmosphere
   TA0 = 270.D0       !  Stationary solution for the 0-th order atmospheric temperature
 &END
