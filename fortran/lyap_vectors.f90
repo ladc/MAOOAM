@@ -127,11 +127,13 @@ CONTAINS
     
    END SUBROUTINE benettin_step
 
-   !> Routine that returns the current global propagator
-   SUBROUTINE get_prop(prop_ret)
-     REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(OUT) :: prop_ret
+   !> Routine that returns the current global propagator and ensemble of
+   !> lyapunov vectors
+   SUBROUTINE get_lyap_state(prop_ret,ensemble_ret)
+     REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(OUT) :: prop_ret,ensemble_ret
      prop_ret=prop
-   END SUBROUTINE get_prop
+     ensemble_ret=ensemble
+   END SUBROUTINE get_lyap_state
 
 END MODULE lyap_vectors
      
