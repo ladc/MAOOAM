@@ -69,7 +69,7 @@ CONTAINS
 
   !> Routine to initialise the TL-AD integration bufers.
   SUBROUTINE init_tl_ad_integrator
-    INTEGER :: AllocStat,ii
+    INTEGER :: AllocStat
     ALLOCATE(buf_j1h(ndim,ndim),buf_j2h(ndim,ndim),buf_j3h(ndim,ndim),&
          &buf_j4h(ndim,ndim),buf_j1(ndim,ndim),buf_j2(ndim,ndim),&
          &buf_j3(ndim,ndim),buf_j4(ndim,ndim),one(ndim,ndim),buf_y11(0:ndim),&

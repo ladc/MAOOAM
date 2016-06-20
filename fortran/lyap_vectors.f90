@@ -35,7 +35,7 @@ MODULE lyap_vectors
 
   PRIVATE
   
-  PUBLIC :: benettin_step,ginelli,ensemble,init_lyap,multiply_prop,get_prop,compute_vectors,compute_exponents
+  PUBLIC :: benettin_step,ginelli,ensemble,init_lyap,multiply_prop,compute_vectors,compute_exponents
   PUBLIC :: loclyap_BLV,lyapunov_BLV,loclyap_FLV,lyapunov_FLV,loclyap_CLV,lyapunov_CLV, init_ensemble
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_BLV    !< Buffer containing the local Lyapunov exponenti of BLV
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov_BLV   !< Buffer containing the averaged Lyapunov exponent of BLV
@@ -177,12 +177,14 @@ CONTAINS
       loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
    END SUBROUTINE ginelli
 
-   !> Routine that returns the current global propagator
-   SUBROUTINE get_prop(prop_ret)
-     REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(OUT) :: prop_ret
+   !> Routine that returns the current global propagator and ensemble of
+   !> lyapunov vectors
+   SUBROUTINE get_lyap_state(prop_ret,ensemble_ret)
+     REAL(KIND=8), DIMENSION(ndim,ndim),INTENT(OUT) :: prop_ret,ensemble_ret
      prop_ret=prop
-   END SUBROUTINE get_prop
-   
+     ensemble_ret=ensemble
+   END SUBROUTINE get_lyap_state
+
    !> Routine that saves the BLV, FLV and CLV if in right time period according
    !> to namelist parameters in int_params.nml
    SUBROUTINE compute_vectors(t,step,forward)
@@ -223,7 +225,6 @@ CONTAINS
          CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,FLV,ndim) !FLV is overwritten
          CALL write_lyapvec(step,FLV,32) ! THIS is the CLV not the FLV
        END IF
-
      END IF
    END IF   
    END SUBROUTINE compute_vectors
