@@ -5,8 +5,8 @@
 
 !  Scale parameters for the ocean and the atmosphere
 &INT_PARAMS
-  T_TRANS = 1.D6       !  transient period (e.g. 1.D7)
-  T_RUN = 1.D6         !  length of trajectory on the attractor (e.g. 5.D8)
+  T_TRANS = 1.D2       !  transient period (e.g. 1.D7)
+  T_RUN = 1.D2         !  length of trajectory on the attractor (e.g. 5.D8)
   DT = 5.D-2           !  the time step
   WRITEOUT = T         !  write out all variables every tw time units
   TW = 10.D0           !
@@ -16,12 +16,14 @@
   OFFSET = 0              ! offset for starting Lyapunov vector computation
   LENGTH_LYAP = 0         ! length of computation (i.e. turning of Ginelli); "0" full time series
   RESCALING_TIME = 5.D-2  ! Rescaling time for the Lyapunov computation
-  COMPUTE_BLV = 'true'    ! compute BLV
+  COMPUTE_BLV = .true.    ! compute BLV
+  COMPUTE_BLV_LE = .true. ! compute LEs of BLV
   CONV_BLV = 0.D0         ! wait for convergence BLV
-  COMPUTE_FLV = 'true'    ! compute FLV
+  COMPUTE_FLV = .true.    ! compute FLV
+  COMPUTE_FLV_LE = .true. ! compute LEs of FLV
   CONV_FLV = 0.D0         ! wait for convergence FLV
-  COMPUTE_CLV = 'true'    ! compute CLV
-  CONV_CLV = 0.D0         ! wait for convergence CLV
+  COMPUTE_CLV = .true.    ! compute CLV
+  COMPUTE_CLV_LE = .true. ! compute LEs of CLV
 &END
 
 

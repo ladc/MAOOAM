@@ -72,7 +72,17 @@ MODULE params
   REAL(KIND=8) :: tw        !< Write all variables every tw time units
   LOGICAL :: writeout       !< Write to file boolean
 
+  REAL(KIND=8) :: offset         !< Roffset for starting Lyapunov vector computatio
+  REAL(KIND=8) :: length_lyap    !< length of computation (i.e. turning of Ginelli); "0" full time series
   REAL(KIND=8) :: rescaling_time !< Rescaling time for the Lyapunov computation
+  LOGICAL      :: compute_BLV    !< compute BLV
+  LOGICAL      :: compute_BLV_LE !< compute LEs of BLV
+  REAL(KIND=8) :: conv_BLV       !< wait for convergence BLV
+  LOGICAL      :: compute_FLV    !< compute FLV
+  LOGICAL      :: compute_FLV_LE !< compute LEs of FLV
+  REAL(KIND=8) :: conv_FLV       !< wait for convergence FLV
+  LOGICAL      :: compute_CLV    !< compute CLV
+  LOGICAL      :: compute_CLV_LE !< compute LEs of CLV
   
   INTEGER :: nboc   !< Number of atmospheric blocks
   INTEGER :: nbatm  !< Number of oceanic blocks
@@ -103,7 +113,7 @@ CONTAINS
     NAMELIST /numblocs/ nboc,nbatm
 
     NAMELIST /int_params/ t_trans,t_run,dt,tw,writeout
-    NAMELIST /lyap_params/ rescaling_time
+    NAMELIST /lyap_params/ offset,length_lyap,rescaling_time,compute_BLV,compute_BLV_LE,conv_BLV,compute_FLV,compute_FLV_LE,conv_FLV,compute_CLV,compute_CLV_LE
 
     OPEN(8, file="params.nml", status='OLD', recl=80, delim='APOSTROPHE')
 
@@ -192,6 +202,14 @@ CONTAINS
     LSBpo=2*epsa*sB*To0**3/(Ga*f0) ! long wave radiation from ocean absorbed by atmosphere
     LSBpa=8*epsa*sB*Ta0**3/(Ga*f0) ! long wave radiation lost by atmosphere to space & ocea
 
+    !---------------------------------------------------------!
+    !                                                         !
+    !Lyapunov parameter check                                     !
+    !                                                         !
+    !---------------------------------------------------------!
 
+    IF (length_lyap .eq. 0) length_lyap=t_run-offset
+    IF (length_lyap+offset .gt. t_run)  STOP "*** length_lyap+offset too long ! ***"
+    IF (conv_BLV+conv_FLV .ge. length_lyap)  STOP "*** conv_BLV + conv_FLV  too long ! ***"
   END SUBROUTINE init_params
 END MODULE params
