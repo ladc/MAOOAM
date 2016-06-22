@@ -36,7 +36,7 @@ MODULE lyap_vectors
   PRIVATE
   
   PUBLIC :: benettin_step,ginelli,ensemble,init_lyap,multiply_prop,compute_vectors,compute_exponents
-  PUBLIC :: loclyap_BLV,lyapunov_BLV,loclyap_FLV,lyapunov_FLV,loclyap_CLV,lyapunov_CLV, init_ensemble
+  PUBLIC :: loclyap_BLV,lyapunov_BLV,loclyap_FLV,lyapunov_FLV,loclyap_CLV,lyapunov_CLV, init_ensemble,get_lyap_state
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_BLV    !< Buffer containing the local Lyapunov exponenti of BLV
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: lyapunov_BLV   !< Buffer containing the averaged Lyapunov exponent of BLV
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: loclyap_FLV    !< Buffer containing the local Lyapunov exponent of FLV
@@ -102,8 +102,13 @@ CONTAINS
     CALL init_ensemble 
     IF (compute_CLV .OR. compute_CLV_LE) THEN
       CALL random_number(CLV)
-      CALL normMAT(CLV,loclyap_CLV)
-      loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
+      DO info=1,ndim
+        CLV(info+1:ndim,info)=0.D0
+      END DO
+      IF (compute_CLV_LE) THEN
+        CALL normMAT(CLV,loclyap_CLV)
+        loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
+      END IF
     END IF
   END SUBROUTINE init_lyap
  
@@ -135,17 +140,23 @@ CONTAINS
     INTEGER :: info,k,step
     LOGICAL :: forward 
     
-    IF (.NOT. forward) THEN
+    IF (.NOT. forward .AND. (compute_FLV .OR. compute_FLV_LE)) THEN
       CALL read_lyapvec(step,prop,23)
-      CALL DGETRF(ndim,ndim,prop,ndim,IPIV,info)
-      CALL DGETRS('n',ndim,ndim,prop,ndim,IPIV,one,ndim,info)
-    ENDIF
+      prop_buf=transpose(prop)
+      ! Multiply the Propagator prop from the right side with the non transposed q matrix
+      ! from the qr decomposition which is stored in ensemble.
+      CALL DORM2R("r","n",ndim,ndim,ndim,ensemble,ndim,tau,prop_buf,ndim,work2,info)
+    ELSE
     ! Multiply the Propagator prop from the right side with the non transposed q matrix
     ! from the qr decomposition which is stored in ensemble.
-    CALL DORM2R("r","n",ndim,ndim,ndim,ensemble,ndim,tau,prop,ndim,work2,info)
-    ! prop contains prop*ensemble but QR decomposed(tau is needed for that as
+      prop_buf=prop
+      CALL DORM2R("r","n",ndim,ndim,ndim,ensemble,ndim,tau,prop_buf,ndim,work2,info)
+    END IF
+    
+    !  write(*,*) 'ben: ',sum(abs(prop))-ndim,maxval(abs(prop)),info
+    ! prop_buf contains prop*ensemble (tau is needed for that as
     ! well !) => copy to ensemble 
-    ensemble=prop
+    ensemble=prop_buf
     
     ! From here on ensemble contains the new information prop*ensemble
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
@@ -159,12 +170,11 @@ CONTAINS
     ELSE
       IF (compute_FLV_LE) THEN
         DO k=1,ndim
-          loclyap_FLV(k)=-log(abs(ensemble(k,k)))/rescaling_time
+          loclyap_FLV(k)=log(abs(ensemble(k,k)))/rescaling_time
         END DO
       END IF
     END IF
     
-    ! Note propagator is not restored!
     
    END SUBROUTINE benettin_step
    
@@ -205,13 +215,14 @@ CONTAINS
          CALL write_lyapvec(step+1,BLV,12) !write Q (BLV) matrix
        END IF
 
-       IF (compute_FLV .OR. compute_FLV_LE) call write_lyapvec(step,prop,23)
-
+       IF (compute_FLV .OR. compute_FLV_LE) THEN
+               call write_lyapvec(step,prop,23)
+           !    write(*,*) 'exp: ',sum(abs(prop))-ndim,maxval(abs(prop))
+       END IF
        IF (compute_CLV .OR. compute_CLV_LE) THEN
          CALL packTRI(ensemble,R)
          WRITE(unit=33,rec=step) R
        END IF
-       CALL init_one(prop)
 
      ELSE
        IF (compute_FLV .AND. before_conv_FLV) THEN
@@ -227,6 +238,8 @@ CONTAINS
        END IF
      END IF
    END IF   
+   CALL init_one(prop)
+   
    END SUBROUTINE compute_vectors
    
    SUBROUTINE compute_exponents(t,step,forward)
@@ -241,12 +254,15 @@ CONTAINS
    IF (past_conv_BLV) THEN
      IF (forward) THEN
      
-         IF (compute_BLV_LE .AND. before_conv_FLV) WRITE(11,rec=step) loclyap_BLV
-   
+         IF (compute_BLV_LE .AND. before_conv_FLV) THEN
+                 WRITE(11,rec=step) loclyap_BLV
+               !  write(*,*) 'lyap1: ',loclyap_BLV(1)
+         END IF
      ELSE
-       IF (compute_FLV .AND. before_conv_FLV) WRITE(21,rec=step) loclyap_FLV
 
-       IF (compute_CLV .AND. before_conv_FLV) WRITE(31,rec=step) loclyap_CLV
+       IF (compute_FLV_LE .AND. before_conv_FLV) WRITE(21,rec=step) loclyap_FLV
+       
+       IF (compute_CLV_LE .AND. before_conv_FLV) WRITE(31,rec=step) loclyap_CLV
 
      END IF
    END IF      
@@ -266,14 +282,14 @@ CONTAINS
      write(unit=unitI,rec=i) vectors
    END SUBROUTINE write_lyapvec
 
-   !> Routine that normalizes uppertriangular packed storage matrix (LAPACK
+   !> Routine that normalizes uppertriangular matrix (LAPACK
    !> standard)
    SUBROUTINE normMAT(M,norms) 
    INTEGER :: i
    REAL(KIND=8), dimension(ndim,ndim), INTENT(INOUT) :: M
    REAL(KIND=8), dimension(ndim) :: norms
    DO i=1,ndim
-     norms(i)=sqrt(sum(M(:,i)**2.0d0)) 
+     norms(i)=sqrt(sum(M(1:i,i)**2.0d0)) 
      M(:,i)=M(:,i)/norms(i)
    END DO
    END SUBROUTINE normMAT

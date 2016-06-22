@@ -14,17 +14,17 @@ PROGRAM maooam_lyapvectors
   USE params, only: ndim, dt, tw, t_trans, t_run, writeout, rescaling_time, compute_BLV_LE, compute_BLV, conv_BLV,compute_FLV, compute_FLV_LE, conv_FLV,compute_CLV, compute_CLV_LE,length_lyap,offset 
   USE aotensor_def, only: init_aotensor
   USE maooam_tl_ad, only: init_tltensor
-  USE IC_def, only: load_IC, IC
+  USE IC_def_ext, only: load_IC, IC, write_IC
   USE integrator, only: init_integrator,step
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step
-  USE lyap_vectors, only:  lyapunov_BLV,loclyap_BLV,lyapunov_FLV,loclyap_FLV,lyapunov_CLV,loclyap_CLV,init_lyap,multiply_prop,benettin_step,compute_vectors,compute_exponents,init_ensemble,ginelli
+  USE lyap_vectors, only:  lyapunov_BLV,loclyap_BLV,lyapunov_FLV,loclyap_FLV,lyapunov_CLV,loclyap_CLV,init_lyap,multiply_prop,benettin_step,compute_vectors,compute_exponents,init_ensemble,ginelli,get_lyap_state
   USE stat
   USE lyap_stat
   IMPLICIT NONE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: X             !< State variable in the model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: Xnew          !< Updated state variable
-  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop_buf    !< Buffer for Integrator propagator
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop_buf,test    !< Buffer for Integrator propagator
   REAL(KIND=8) :: t=0.D0                                   !< Time variable
   REAL(KIND=8) :: resc=1.D-9                               !< Variable rescaling factor for the divergence method
   REAL(KIND=8) :: t_up
@@ -57,7 +57,7 @@ PROGRAM maooam_lyapvectors
      IF (compute_CLV .OR. compute_CLV_LE) OPEN(33,file='R.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
   END IF
 
-  ALLOCATE(X(0:ndim),Xnew(0:ndim),prop_buf(ndim,ndim))
+  ALLOCATE(X(0:ndim),Xnew(0:ndim),prop_buf(ndim,ndim),test(ndim,ndim))
   X=IC
   PRINT*, 'Starting the transient time evolution... t_trans = ',t_trans
 
@@ -82,7 +82,8 @@ PROGRAM maooam_lyapvectors
   !
   
   t=offset
-    
+   
+  CALL write_IC('after_transient_state',X) 
   !
   ! Start forward part of run of run
   !
@@ -94,6 +95,8 @@ PROGRAM maooam_lyapvectors
      X=Xnew
      IF (mod(t,rescaling_time)<dt) THEN
         IndexBen=IndexBen+1
+        !call get_lyap_state(prop_buf,test)
+        !write(*,*) 'eee: ',sum(abs(prop_buf))-ndim,maxval(abs(prop_buf)) 
         CALL benettin_step(.true.,IndexBen) ! Performs QR step with prop
         CALL compute_exponents(t,IndexBen,.true.)
         !CALL lyap_acc(loclyap_BLV)
@@ -109,6 +112,8 @@ PROGRAM maooam_lyapvectors
      IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
   END DO
   PRINT*, 'Forward evolution finished.'
+  
+  CALL write_IC('final_state',X) 
 
   PRINT*, 'Starting the backward evolution ...'
   IF (compute_FLV .OR. compute_FLV_LE) THEN
@@ -119,6 +124,7 @@ PROGRAM maooam_lyapvectors
 
     IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
     IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexBen)               ! Performs Ginelli step with prop
+
     CALL compute_exponents(t,IndexBen,.false.)
     CALL compute_vectors(t,IndexBen,.false.)
     IndexBen=IndexBen-1
