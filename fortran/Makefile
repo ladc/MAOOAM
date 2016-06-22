@@ -25,16 +25,16 @@ endif
 .SUFFIXES:
 .SUFFIXES: .f90 .o .mod .out .test
 
-PROGRAMS = maooam_lyap maooam maooam_tl maooam_lyap
+PROGRAMS = maooam maooam_tl maooam_lyapvectors
 
-MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod lyap_vectors.mod rk4_integrator.mod lyap_stat.mod 
+MODULES = util.mod params.mod inprod_analytic.mod aotensor_def.mod ic_def.mod ic_def_ext.mod integrator.mod stat.mod tensor.mod maooam_tl_ad.mod tl_ad_integrator.mod rk4_tl_ad_integrator.mod icdelta_def.mod lyap_vectors.mod rk4_integrator.mod lyap_stat.mod 
 MODULE_OBJECTS = $(MODULES:.mod=.o)
 
 
 all: $(PROGRAMS)
 
-debug: FCFLAGS = -g -O0 -check all -traceback 
-
+debug: FCFLAGS = -g -O0 -check all -traceback -fpe0 -check bounds -debug all -check uninit -ftrapuv
+debug: LDFLAGS = -llapack -lblas
 debug: all
 
 %.mod: %.f90
@@ -51,6 +51,7 @@ aotensor_def.mod: tensor.mod inprod_analytic.mod
 integrator.mod: aotensor_def.mod
 rk4_integrator.mod: aotensor_def.mod
 ic_def.mod: util.mod aotensor_def.mod
+ic_def_ext.mod: util.mod aotensor_def.mod
 stat.mod: params.mod
 maooam_tl_ad.mod: aotensor_def.mod
 tl_ad_integrator.mod: maooam_tl_ad.mod
