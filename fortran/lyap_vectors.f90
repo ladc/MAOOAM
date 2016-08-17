@@ -29,7 +29,8 @@ MODULE lyap_vectors
   !                                                     !
   !-----------------------------------------------------!
 
-  USE params, only: ndim,dt,rescaling_time, compute_BLV,compute_BLV_LE, conv_BLV,compute_FLV,compute_FLV_LE, conv_FLV,compute_CLV_LE,compute_CLV, length_lyap,offset 
+  USE params, only: ndim,dt,rescaling_time, compute_BLV,compute_BLV_LE, conv_BLV,compute_FLV,&
+                   &compute_FLV_LE, conv_FLV,compute_CLV_LE,compute_CLV, length_lyap,offset 
   USE util, only: init_one
   IMPLICIT NONE
 
@@ -77,6 +78,7 @@ CONTAINS
 
   !> Initialize Lyapunov computation (possibly also vectors in later version)
   !> and initializes also a random orthogonal matrix for the matrix ensemble. 
+  !> Open files for storage and writeout of data
   SUBROUTINE init_lyap
     INTEGER :: AllocStat,ilaenv,info
     ALLOCATE(one(ndim,ndim))
@@ -85,6 +87,29 @@ CONTAINS
     lwork=ndim*lwork
     ALLOCATE(prop_buf(ndim,ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
     & work2(ndim),work(lwork),STAT=AllocStat) 
+    
+    ! Files for output and temporary storage
+
+
+    IF (compute_BLV .OR. compute_CLV_LE)&
+    &OPEN(12,file='BLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+    IF (compute_BLV_LE) &
+    &OPEN(11,file='BLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+    IF (compute_FLV) &
+    &OPEN(22,file='FLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+    IF (compute_FLV_LE) &
+    &OPEN(21,file='FLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+    IF (compute_FLV .OR. compute_FLV_LE) &
+    &OPEN(23,file='propagator.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+    IF (compute_CLV) &
+    &OPEN(32,file='CLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+    IF (compute_CLV_LE) &
+    &OPEN(31,file='CLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+    IF (compute_CLV .OR. compute_CLV_LE) &
+    &OPEN(33,file='R.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
+
+
+
     IF (compute_BLV .OR. compute_BLV_LE) ALLOCATE(BLV(ndim,ndim))
     IF (compute_BLV_LE) THEN
       ALLOCATE(lyapunov_BLV(ndim),loclyap_BLV(ndim));loclyap_BLV=0.D0;lyapunov_BLV=0.D0
