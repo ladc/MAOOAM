@@ -42,19 +42,19 @@ CONTAINS
   !> Random generator initialization routine  
   SUBROUTINE init_random_seed()
     USE iso_fortran_env, only: int64
-    USE IFPORT, only: getpid
+    USE IFPORT !, only: getpid
     IMPLICIT NONE
-    INTEGER, ALLOCATABLE :: seed(:)
+    INTEGER, ALLOCATABLE :: seed_loc(:)
     INTEGER :: i, n, un, istat, dt(8), pid
     INTEGER(int64) :: t
-        
+
     CALL random_seed(size = n)
-    ALLOCATE(seed(n))
+    ALLOCATE(seed_loc(n))
     ! First try IF the OS provides a random number generator
     OPEN(newunit=un, file="/dev/urandom", access="stream", &
          form="unformatted", action="read", status="old", iostat=istat)
     IF (istat == 0) THEN
-       READ(un) seed
+       READ(un) seed_loc
        CLOSE(un)
     ELSE
        ! Fallback to XOR:ing the current time and pid. The PID is
@@ -73,10 +73,10 @@ CONTAINS
        pid = getpid()
        t = ieor(t, int(pid, kind(t)))
        DO i = 1, n
-          seed(i) = lcg(t)
+          seed_loc(i) = lcg(t)
        END DO
     END IF
-    CALL random_seed(put=seed)
+    CALL random_seed(put=seed_loc)
   contains
     ! This simple PRNG might not be good enough for real work, but is
     ! sufficient for seeding a better PRNG.
