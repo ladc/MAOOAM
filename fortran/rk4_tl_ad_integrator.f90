@@ -19,7 +19,7 @@
 
 
 
-MODULE rk4_tl_ad_integrator
+MODULE tl_ad_integrator
 
   USE util, only: init_one
   USE params, only: ndim
@@ -294,4 +294,4 @@ CONTAINS
    
   END SUBROUTINE prop_step
 
-END MODULE rk4_tl_ad_integrator
+END MODULE tl_ad_integrator

@@ -16,7 +16,7 @@
 !                                                                           
 !---------------------------------------------------------------------------
 
-MODULE rk4_integrator
+MODULE integrator
   USE params, only: ndim
   USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
@@ -80,4 +80,4 @@ CONTAINS
     t=t+dt
     res=y+buf_kA*dt/6
   END SUBROUTINE step
-END MODULE rk4_integrator
+END MODULE integrator
