@@ -119,7 +119,7 @@ CONTAINS
     WRITE(8,*) ""
     WRITE(8,'(a)') "&RAND"
     WRITE(8,'(a)') "  init_type= '"//init_type//"'" 
-    WRITE(8,'(a,d)') "  size_of_random_noise = ",size_of_random_noise
+    WRITE(8,*) "  size_of_random_noise = ",size_of_random_noise
     WRITE(8,'(a)') "&END"
     WRITE(8,*) ""
     CLOSE(8)

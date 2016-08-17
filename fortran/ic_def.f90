@@ -135,7 +135,7 @@ CONTAINS
     WRITE(8,*) ""
     WRITE(8,'(a)') "&RAND"
     WRITE(8,'(a)') "  init_type= '"//init_type//"'" 
-    WRITE(8,'(a,d)') "  size_of_random_noise = ",size_of_random_noise
+    WRITE(8,*) "  size_of_random_noise = ",size_of_random_noise
     DO i=1,j
        WRITE(8,*) " seed("//TRIM(str(i))//") = ",seed(i)
     END DO
