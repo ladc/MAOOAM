@@ -18,7 +18,7 @@ PROGRAM maooam_tl
   USE IC_def, only: load_IC, IC
   USE ICdelta_def, only: load_ICdelta, ICdelta
   USE integrator, only: init_integrator,step
-  USE rk4_tl_ad_integrator, only: init_tl_ad_integrator,evolve_tl_step
+  USE tl_ad_integrator, only: init_tl_ad_integrator,evolve_tl_step
   USE stat
   IMPLICIT NONE
 
