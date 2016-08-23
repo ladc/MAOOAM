@@ -35,8 +35,6 @@ MODULE tl_ad_integrator
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_y11 !< Buffer to hold the intermediate position of the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kC !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kD !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j1 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j2 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j3 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
@@ -73,7 +71,7 @@ CONTAINS
     ALLOCATE(buf_j1h(ndim,ndim),buf_j2h(ndim,ndim),buf_j3h(ndim,ndim),&
          &buf_j4h(ndim,ndim),buf_j1(ndim,ndim),buf_j2(ndim,ndim),&
          &buf_j3(ndim,ndim),buf_j4(ndim,ndim),one(ndim,ndim),buf_y11(0:ndim),&
-         &buf_y1(0:ndim),buf_kA(0:ndim),buf_kB(0:ndim),buf_kC(0:ndim),buf_kD(0:ndim), &
+         &buf_y1(0:ndim),buf_kA(0:ndim),buf_kB(0:ndim), &
          &buf_kAA(0:ndim),buf_kBB(0:ndim) ,STAT=AllocStat)
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
     CALL init_one(one)
@@ -268,13 +266,18 @@ CONTAINS
     buf_j2=jacobian_mat(buf_y1)
     
     buf_y1 = y + 0.5*dt*buf_kB
+    buf_kA = buf_kA + 2*buf_kB
 
-    CALL tendencies(t+0.5*dt,buf_y1,buf_kC)
+    CALL tendencies(t+0.5*dt,buf_y1,buf_kB)
     buf_j3=jacobian_mat(buf_y1)
 
-    buf_y1 = y + dt*buf_kC
-    CALL tendencies(t+dt,buf_y1,buf_kD)
+    buf_y1 = y + dt*buf_kB
+    buf_kA = buf_kA + 2*buf_kB
+    
+    CALL tendencies(t+dt,buf_y1,buf_kB)
     buf_j4=jacobian_mat(buf_y1)
+    
+    buf_kA = buf_kA + buf_kB
     
     buf_j1h=buf_j1
     buf_j2h=buf_j2
@@ -284,7 +287,7 @@ CONTAINS
     call dgemm ('n', 'n', ndim, ndim, ndim, dt/2.0d0, buf_j3, ndim,buf_j2h, ndim,1.0d0, buf_j3h, ndim)
     call dgemm ('n', 'n', ndim, ndim, ndim, dt      , buf_j4, ndim,buf_j3h, ndim,1.0d0, buf_j4h, ndim)
      
-    ynew=y  + dt/6.0d0*(buf_kA + 2.0d0*buf_kB + 2.0d0*buf_kC + buf_kD)
+    ynew=y+buf_kA*dt/6
     IF (adjoint) THEN
             propagator=one - dt/6.0d0*(buf_j1h + 2.0d0*buf_j2h + 2.0d0*buf_j3h + buf_j4h)
     ELSE

@@ -22,6 +22,7 @@ PROGRAM maooam_lyapvectors
  & loclyap_CLV,init_lyap,multiply_prop,benettin_step,compute_vectors,compute_exponents,init_ensemble,ginelli,get_lyap_state
   USE stat
   USE lyap_stat
+  USE util, only:str
   IMPLICIT NONE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: X             !< State variable in the model
@@ -31,7 +32,7 @@ PROGRAM maooam_lyapvectors
   REAL(KIND=8) :: resc=1.D-9                               !< Variable rescaling factor for the divergence method
   REAL(KIND=8) :: t_up
   INTEGER :: IndexBen,WRSTAT
-  CHARACTER(LEN=19) :: FMTX
+  CHARACTER(LEN=20) :: FMTX
 
   PRINT*, 'Model MAOOAM v1.0'
   PRINT*, '      - with computation of the Lyapunov spectrum'
@@ -44,49 +45,68 @@ PROGRAM maooam_lyapvectors
   CALL init_integrator  ! Initialize the integrator
   CALL init_tl_ad_integrator  ! Initialize tangent linear integrator
   CALL init_lyap        ! Initialize Lyapunov computation and open files for output of LVs and Les
-  write(FMTX,'(A10,i3,A6)') '(F10.2,4x,',ndim,'E15.5)'
-  t_up=dt/t_trans*100.D0
+  write(FMTX,'(A10,i3,A7)') '(F10.2,4x,',ndim,'E30.15)'
 
   IF (writeout) OPEN(10,file='evol_field.dat')
 
   ALLOCATE(X(0:ndim),Xnew(0:ndim),prop_buf(ndim,ndim))
   X=IC
-  PRINT*, 'Starting the transient time evolution... t_trans = ',t_trans
+  
+  !
+  ! If offset is bigger than zero than the existing
+  ! "IC_after_transient_state.nml" is used as initial condition
+  !
 
+  IF (offset>0) THEN
+    t_trans=offset  ! transient phase in offset mode is just going
+    PRINT*, '*** Skipping transient time evolution. ***' 
+    PRINT*, '*** Instead loading IC.nml immediately and integrating until offset = ',offset,' ***'
+  ELSE
+    PRINT*, 'Starting transient time evolution... t_trans = ',t_trans
+  ENDIF
+  
+  t = 0.0D0
+  IF (t_trans.ne.0) t_up = dt/t_trans*100.D0
   DO WHILE (t<t_trans)
      CALL step(X,t,dt,Xnew)
      X=Xnew
      IF (mod(t/t_trans*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_trans*100.D0,char(13)
   END DO
 
-  PRINT*, 'Starting the forward time evolution... t_run = ',t_run,'; offset = ',offset
+  PRINT*, 'Starting the forward time evolution with tangent linear model ... t_run = ',t_run,'; offset = ',offset
 
   CALL init_stat
   CALL lyap_init_stat
   t=0.D0
   t_up=dt/t_run*100.D0
+  t=offset
   
-  !
   ! Possibility for Offset for Lyapunov Test (TODO: implement read background
   ! trajectory if offset is bigger than zero, new module
   ! read_(rk4)_tl_ad_integrator.f90
-  ! that replaces prop_step function with read command for X)
-  !
+  ! that replaces prop_step function with read command for X
+  ! COMMENT from Sebastian: I try a slightly different implementation that is
+  ! more straightforward since most in between steps have to recomputed anyway
+  ! we can just repeat the whole computation.
   
-  t=offset
-   
-  CALL write_IC('after_transient_state',X) 
-  !
+    
+  IF (offset .eq. 0) THEN
+    CALL write_IC('after_transient_state',X) 
+  ELSE
+    CALL write_IC('offset_'//trim(str(int(offset))),X) 
+  END IF
+  ! 
   ! Start forward part of run of run
   !
     
-  IndexBen=0 ! Index for lyapunov vector calculations
-  DO WHILE (t<offset+length_lyap)
+  IndexBen=Int(floor(offset/rescaling_time)) ! Index for lyapunov vector calculations
+  DO WHILE (t .LT. length_lyap)
 
      CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
      X=Xnew
-     IF (mod(t,rescaling_time)<dt) THEN
+
+     IF (mod(t,rescaling_time)<dt .AND. t.GT.offset) THEN
         IndexBen=IndexBen+1
         CALL benettin_step(.true.,IndexBen) ! Performs QR step with prop
         CALL compute_exponents(t,IndexBen,.true.)
@@ -102,25 +122,29 @@ PROGRAM maooam_lyapvectors
   END DO
   PRINT*, 'Forward evolution finished.'
   
-  CALL write_IC('final_state',X) 
-
-  PRINT*, 'Starting the backward evolution ...'
-  IF (compute_FLV .OR. compute_FLV_LE) THEN
-    CALL init_ensemble
+  IF (offset .eq. 0) THEN
+    CALL write_IC('final_state',X) 
+  ELSE
+    CALL write_IC('final_state_offset_'//trim(str(int(offset))),X) 
   END IF
 
-  DO WHILE (t>offset .AND. IndexBen>0)
+  IF (compute_CLV .OR. compute_CLV_LE .OR. compute_FLV .OR. compute_FLV_LE) THEN
+    PRINT*, 'Starting the backward evolution ...'
+    IF (compute_FLV .OR. compute_FLV_LE) THEN
+      CALL init_ensemble
+    END IF
+    DO WHILE (t>offset .AND. IndexBen>0)
 
-    IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
-    IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexBen)               ! Performs Ginelli step with prop
+      IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
+      IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexBen)               ! Performs Ginelli step with prop
 
-    CALL compute_exponents(t,IndexBen,.false.)
-    CALL compute_vectors(t,IndexBen,.false.)
-    IndexBen=IndexBen-1
-    t=t-dt
-    IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
-  END DO
-
+      CALL compute_exponents(t,IndexBen,.false.)
+      CALL compute_vectors(t,IndexBen,.false.)
+      IndexBen=IndexBen-1
+      t=t-dt
+      IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
+    END DO
+  END IF
 !  IF (writeout) THEN
 !     OPEN(10,file='mean_lyapunov.dat')
 !     lyapunov_BLV=lyap_mean()
