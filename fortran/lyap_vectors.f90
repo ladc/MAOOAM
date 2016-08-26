@@ -48,6 +48,7 @@ MODULE lyap_vectors
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: BLV      !< Buffer containing the Backward Lyapunov Vectors
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: FLV      !< Buffer containing the Forward Lyapunov Vectors
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: CLV      !< Buffer containing the Covariant Lyapunov Vectors
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_CLV  !< 2nd Buffer containing the Covariant Lyapunov Vectors in full coordinates
    
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: ensemble !< Buffer containing the QR decompsoition of the ensemble
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop     !< Buffer holding the propagator matrix
@@ -120,7 +121,9 @@ CONTAINS
     END IF
     IF (compute_CLV .OR. compute_CLV_LE) ALLOCATE(CLV(ndim,ndim),R(ndim*(ndim+1)/2))
     IF (compute_CLV_LE) THEN
-      ALLOCATE(lyapunov_CLV(ndim),loclyap_CLV(ndim));loclyap_CLV=0.D0;lyapunov_CLV=0.D0
+      ALLOCATE(buf_CLV(ndim,ndim)) ! Buffer may be used as buffer
+      ALLOCATE(lyapunov_CLV(ndim),loclyap_CLV(ndim))
+      loclyap_CLV=0.D0;lyapunov_CLV=0.D0
     END IF
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
     
@@ -258,8 +261,8 @@ CONTAINS
 
        IF (compute_CLV .AND. before_conv_FLV) THEN
          CALL read_lyapvec(step,BLV,12)
-         CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,FLV,ndim) !FLV is overwritten
-         CALL write_lyapvec(step,FLV,32) ! THIS is the CLV not the FLV
+         CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,buf_CLV,ndim) 
+         CALL write_lyapvec(step,buf_CLV,32) 
        END IF
      END IF
    END IF   

@@ -100,7 +100,7 @@ PROGRAM maooam_lyapvectors
   !
     
   IndexBen=Int(floor(offset/rescaling_time)) ! Index for lyapunov vector calculations
-  DO WHILE (t .LT. length_lyap)
+  DO WHILE (t .LE. length_lyap)
 
      CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
