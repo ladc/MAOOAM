@@ -30,8 +30,8 @@ MODULE lyap_vectors
   !-----------------------------------------------------!
 
   USE params, only: ndim,dt,rescaling_time, compute_BLV,compute_BLV_LE, conv_BLV,compute_FLV,&
-                   &compute_FLV_LE, conv_FLV,compute_CLV_LE,compute_CLV, length_lyap,offset 
-  USE util, only: init_one
+                   &compute_FLV_LE, conv_FLV,compute_CLV_LE,compute_CLV, length_lyap,offset,t_run 
+  USE util, only: init_one,str
   IMPLICIT NONE
 
   PRIVATE
@@ -81,7 +81,7 @@ CONTAINS
   !> and initializes also a random orthogonal matrix for the matrix ensemble. 
   !> Open files for storage and writeout of data
   SUBROUTINE init_lyap
-    INTEGER :: AllocStat,ilaenv,info
+    INTEGER :: AllocStat,ilaenv,info,k
     ALLOCATE(one(ndim,ndim))
     CALL init_one(one)
     lwork=ilaenv(1,"dgeqrf"," ",ndim,ndim,ndim,-1)
@@ -91,24 +91,24 @@ CONTAINS
     
     ! Files for output and temporary storage
 
-
-    IF (compute_BLV .OR. compute_CLV_LE)&
-    &OPEN(12,file='BLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
-    IF (compute_BLV_LE) &
-    &OPEN(11,file='BLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
-    IF (compute_FLV) &
-    &OPEN(22,file='FLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
-    IF (compute_FLV_LE) &
-    &OPEN(21,file='FLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
-    IF (compute_FLV .OR. compute_FLV_LE) &
-    &OPEN(23,file='propagator.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
-    IF (compute_CLV) &
-    &OPEN(32,file='CLV_vec.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
-    IF (compute_CLV_LE) &
-    &OPEN(31,file='CLV_exp.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
-    IF (compute_CLV .OR. compute_CLV_LE) &
-    &OPEN(33,file='R.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
-
+    DO k=1,ceiling(t_run/rescaling_time/100000.)
+      IF (compute_BLV .OR. compute_CLV_LE)&
+      &OPEN(12*100000+k,file='BLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      IF (compute_BLV_LE) &
+      &OPEN(11*100000+k,file='BLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      IF (compute_FLV) &
+      &OPEN(22*100000+k,file='FLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      IF (compute_FLV_LE) &
+      &OPEN(21*100000+k,file='FLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      IF (compute_FLV .OR. compute_FLV_LE) &
+      &OPEN(23*100000+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      IF (compute_CLV) &
+      &OPEN(32*100000+k,file='CLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      IF (compute_CLV_LE) &
+      &OPEN(31*100000+k,file='CLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      IF (compute_CLV .OR. compute_CLV_LE) &
+      &OPEN(33*100000+k,file='R_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
+    END DO
 
 
     IF (compute_BLV .OR. compute_BLV_LE) ALLOCATE(BLV(ndim,ndim))
@@ -209,7 +209,7 @@ CONTAINS
    !> This routine performs the backward ginelli step
    SUBROUTINE ginelli(step)
    INTEGER :: step,info
-      READ(unit=33,rec=step) R
+      CALL read_R(step,33)
       CALL DTPTRS('u','n','n',ndim,ndim,R,CLV,ndim,info)
       CALL normMAT(CLV,loclyap_CLV)
       loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
@@ -243,13 +243,10 @@ CONTAINS
          CALL write_lyapvec(step+1,BLV,12) !write Q (BLV) matrix
        END IF
 
-       IF (compute_FLV .OR. compute_FLV_LE) THEN
-               call write_lyapvec(step,prop,23)
-           !    write(*,*) 'exp: ',sum(abs(prop))-ndim,maxval(abs(prop))
-       END IF
+       IF (compute_FLV .OR. compute_FLV_LE) CALL write_lyapvec(step,prop,23)
        IF (compute_CLV .OR. compute_CLV_LE) THEN
          CALL packTRI(ensemble,R)
-         WRITE(unit=33,rec=step) R
+         CALL write_R(step,33)
        END IF
 
      ELSE
@@ -281,33 +278,58 @@ CONTAINS
    before_conv_FLV=(t-offset.lt.length_lyap-conv_FLV)
    IF (past_conv_BLV) THEN
      IF (forward) THEN
-     
-         IF (compute_BLV_LE .AND. before_conv_FLV) THEN
-                 WRITE(11,rec=step) loclyap_BLV
-               !  write(*,*) 'lyap1: ',loclyap_BLV(1)
-         END IF
+       IF (compute_BLV_LE .AND. before_conv_FLV) CALL write_lyapexp(step,loclyap_BLV,11)
      ELSE
-
-       IF (compute_FLV_LE .AND. before_conv_FLV) WRITE(21,rec=step) loclyap_FLV
-       
-       IF (compute_CLV_LE .AND. before_conv_FLV) WRITE(31,rec=step) loclyap_CLV
-
+       IF (compute_FLV_LE .AND. before_conv_FLV) CALL write_lyapexp(step,loclyap_FLV,21)
+       IF (compute_CLV_LE .AND. before_conv_FLV) CALL write_lyapexp(step,loclyap_CLV,31)
      END IF
    END IF      
    END SUBROUTINE compute_exponents
       
+   !> Routine to read R matrix
+   SUBROUTINE read_R(i,unitI)
+   INTEGER :: i,unitI,k
+     k=ceiling(real(i)/100000.0)   
+     READ(unit=unitI*100000+k,rec=i-(k-1)*100000) R 
+   END SUBROUTINE read_R
+  
+   !> Routine to write R matrix
+   SUBROUTINE write_R(i,unitI)
+   INTEGER :: i,unitI,k
+     k=ceiling(real(i)/100000.0)   
+     write(unit=unitI*100000+k,rec=i-(k-1)*100000) R
+   END SUBROUTINE write_R
+
+!> Routine to read lyapunov exponents
+   SUBROUTINE read_lyapexp(i,exponents,unitI)
+   INTEGER :: i,unitI,k
+   REAL(KIND=8), DIMENSION(ndim), INTENT(OUT) :: exponents
+     k=ceiling(real(i)/100000.0)   
+     READ(unit=unitI*100000+k,rec=i-(k-1)*100000) exponents
+   END SUBROUTINE read_lyapexp
+  
+   !> Routine to write lyapunov exponents
+   SUBROUTINE write_lyapexp(i,exponents,unitI)
+   INTEGER :: i,unitI,k
+   REAL(KIND=8), DIMENSION(ndim), INTENT(IN) :: exponents
+     k=ceiling(real(i)/100000.0)   
+     write(unit=unitI*100000+k,rec=i-(k-1)*100000) exponents
+   END SUBROUTINE write_lyapexp
+
    !> Routine to read lyapunov vectors
    SUBROUTINE read_lyapvec(i,vectors,unitI)
-   INTEGER :: i,unitI
+   INTEGER :: i,unitI,k
    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: vectors
-     READ(unit=unitI,rec=i) vectors
+     k=ceiling(real(i)/100000.0)   
+     READ(unit=unitI*100000+k,rec=i-(k-1)*100000) vectors
    END SUBROUTINE read_lyapvec
   
    !> Routine to write lyapunov vectors
    SUBROUTINE write_lyapvec(i,vectors,unitI)
-   INTEGER :: i,unitI
+   INTEGER :: i,unitI,k
    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(IN) :: vectors
-     write(unit=unitI,rec=i) vectors
+     k=ceiling(real(i)/100000.0)   
+     write(unit=unitI*100000+k,rec=i-(k-1)*100000) vectors
    END SUBROUTINE write_lyapvec
 
    !> Routine that normalizes uppertriangular matrix (LAPACK
