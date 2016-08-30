@@ -14,7 +14,7 @@ local rk = require("rk2")(n)
 local tensor = require("tensor")
 local aotensor_tab = tensor.simplify_coo(require("aotensor"))
 
-local tl_ad = require("maooam_tl_ad")
+local tl_ad = require("tl_ad_tensor")
 
 -- Test Taylor property for the Tangent Linear.
 -- lim(\lambda->0) M(x+\lambda dx) - M(x) / M'(\lambda dx) = 1

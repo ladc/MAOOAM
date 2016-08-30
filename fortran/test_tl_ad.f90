@@ -14,9 +14,9 @@
 PROGRAM test_tl_ad
   USE params, only:ndim,dt,t_trans
   USE aotensor_def, only: init_aotensor
-  USE integrator, only: init_integrator,step
-  USE maooam_tl_ad, only: init_tltensor, init_adtensor
-  USE tl_ad_integrator, only: init_tl_ad_integrator,tl_step, init_tl_ad_integrator,ad_step
+  USE rk2_integrator, only: init_integrator,step
+  USE tl_ad_tensor, only: init_tltensor, init_adtensor
+  USE rk2_tl_ad_integrator, only: init_tl_ad_integrator,tl_step,ad_step
   IMPLICIT NONE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: y0_IC,y0,y0prime,dy0,dy0_bis
@@ -34,8 +34,7 @@ PROGRAM test_tl_ad
   CALL init_adtensor
 
   CALL init_integrator  ! Initialize the model integrator
-  CALL init_tl_ad_integrator  ! Initialize the TL integrator
-  CALL init_tl_ad_integrator  ! Initialize the AD integrator
+  CALL init_tl_ad_integrator  ! Initialize the TL & AD integrator
 
   ALLOCATE(y0_IC(0:ndim),dy(0:ndim),y0(0:ndim),y0prime(0:ndim)&
        &,y1(0:ndim))!, STAT=AllocStat)

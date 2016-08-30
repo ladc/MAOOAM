@@ -1,4 +1,4 @@
--- maooam_tl_ad.lua
+-- tl_ad_tensor.lua
 -- (C) 2016 Lesley De Cruz & Jonathan Demaeyer
 -- See LICENSE.txt for license information.
 
@@ -21,7 +21,7 @@ local function jacobian(ystar)
   return jsparse_mul(aotensor,ystar)
 end
 
--- Compute the TL tensor from the original MAOOAM one
+--- Compute the TL tensor from the original MAOOAM one
 -- @param aotensor_tab model tensor coolist (table form)
 -- @return tangent linear model tensor (table form)
 local function get_tltensor(aotensor_tab)
@@ -37,7 +37,7 @@ local function get_tltensor(aotensor_tab)
   return tltensor
 end
 
--- Compute the AD tensor from the TL tensor (method 1)
+--- Compute the AD tensor from the TL tensor (method 1)
 -- @param tltensor_tab model TL tensor coolist (not yet in fficoo form).
 -- @return adjoint model tensor (table form)
 local function  adtensor_tab_ref(tltensor_tab)
@@ -57,8 +57,12 @@ local function get_adtensor(aotensor_tab)
   local adtensor = {}
   for _,entry in pairs(aotensor_tab) do
     if entry[1]~=0 then
-      adtensor[#adtensor+1] = {entry[3],entry[1],entry[2],entry[4]}
-      adtensor[#adtensor+1] = {entry[2],entry[1],entry[3],entry[4]}
+      if entry[3]~=0 then
+        adtensor[#adtensor+1] = {entry[3],entry[1],entry[2],entry[4]}
+      end
+      if entry[2]~=0 then
+        adtensor[#adtensor+1] = {entry[2],entry[1],entry[3],entry[4]}
+      end
     end
   end
   return adtensor
@@ -133,8 +137,10 @@ end
 return {
   model = model,
   tl_traj = tl_traj,
+  get_tltensor = get_tltensor,
   get_tl = get_tl,
   ad_traj = ad_traj,
+  get_adtensor = get_adtensor,
   get_ad = get_ad,
   jacobian = jacobian,
 }

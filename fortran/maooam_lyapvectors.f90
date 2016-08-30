@@ -14,7 +14,7 @@ PROGRAM maooam_lyapvectors
   USE params, only: ndim, dt, tw, t_trans, t_run, writeout, rescaling_time, compute_BLV_LE,&
  & compute_BLV, conv_BLV,compute_FLV, compute_FLV_LE, conv_FLV,compute_CLV, compute_CLV_LE,length_lyap,offset 
   USE aotensor_def, only: init_aotensor
-  USE maooam_tl_ad, only: init_tltensor
+  USE tl_ad_tensor, only: init_tltensor
   USE IC_def_ext, only: load_IC, IC, write_IC
   USE integrator, only: init_integrator,step
   USE tl_ad_integrator, only: init_tl_ad_integrator,prop_step

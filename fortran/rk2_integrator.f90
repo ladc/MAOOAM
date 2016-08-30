@@ -1,5 +1,5 @@
 
-! ic_def.f90
+! rk2_integrator.f90
 !
 !>  Module with the integration routines.
 !

@@ -93,21 +93,29 @@ CONTAINS
 
     DO k=1,ceiling(t_run/rescaling_time/100000.)
       IF (compute_BLV .OR. compute_CLV_LE)&
-      &OPEN(12*100000+k,file='BLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      &OPEN(12*100000+k,file='BLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_BLV_LE) &
-      &OPEN(11*100000+k,file='BLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      &OPEN(11*100000+k,file='BLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
       IF (compute_FLV) &
-      &OPEN(22*100000+k,file='FLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      &OPEN(22*100000+k,file='FLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_FLV_LE) &
-      &OPEN(21*100000+k,file='FLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      &OPEN(21*100000+k,file='FLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
       IF (compute_FLV .OR. compute_FLV_LE) &
-      &OPEN(23*100000+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      &OPEN(23*100000+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_CLV) &
-      &OPEN(32*100000+k,file='CLV_vec_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
+      &OPEN(32*100000+k,file='CLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_CLV_LE) &
-      &OPEN(31*100000+k,file='CLV_exp_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+      &OPEN(31*100000+k,file='CLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
       IF (compute_CLV .OR. compute_CLV_LE) &
-      &OPEN(33*100000+k,file='R_part_'//trim(str(k))//'.dat',status='replace',form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
+      &OPEN(33*100000+k,file='R_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
     END DO
 
 
