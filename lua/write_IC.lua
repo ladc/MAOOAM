@@ -9,6 +9,8 @@
 -- variables into the specific ocean and atmosphere variable names.
 ------------------------------------------------------------------------
 
+local rand = math.random
+
 local function tabstr(t)
   local str={}
   for k,v in pairs(t) do str[#str+1] = k.."="..v end
@@ -16,14 +18,36 @@ local function tabstr(t)
   return str
 end
 
-local function write_IC(inprod, initvec)
-  -- write IC template if necessary, return true if it is written.
-  local IC = io.open("IC.lua")
-  if IC then return false end
-  IC=io.open("IC.lua","w")
-  assert(IC,"IC.lua is not present and not writeable.")
-  IC:write("-- IC.lua\n\n-- Initial conditions for the extended model.\n\nreturn {\n")
+--- Write IC template if necessary, return true if it is written.
+-- @param inprod Inner products table; contains info about variables.
+-- @param initvec Initial condition vector: OVERRIDES the other options, will
+-- be written to IC file, along with the option init_type="read".
+-- @param fn String which contains the filename; default: IC.lua
+-- @return Nothing. Its effect is to write the new IC file, if needed.
+local function write_IC(inprod, initvec, fn)
+  fn = fn or "IC.lua"
+  local IC = io.open(fn,"r")
+  local rewrite = true
+  local init_type, size_of_random_noise = "rand", 1e-2
+  if IC then 
+    IC:close()
+    local IC_options = loadfile(fn)()
+    init_type, size_of_random_noise = IC_options.init_type or init_type, IC_options.size_of_random_noise or size_of_random_noise
+    if init_type=="read" and not initvec then
+      rewrite = false
+    end
+  end
+  if init_type=="rand" or initvec=="random" then
+    assert(type(size_of_random_noise)=="number",
+    "Please specify the table entry size_of_random_noise (number) in "..fn)
+    initvec = setmetatable({},{__index=function() return size_of_random_noise*(rand()-0.5)*2 end})
+  end
   initvec = initvec or setmetatable({},{__index=function() return 0 end})
+
+  if not rewrite then return end
+  IC=io.open(fn,"w")
+  assert(IC,fn.." is not present and not writeable.")
+  IC:write("-- ",fn,"\n\n-- Initial conditions for MAOOAM.\n\nreturn {\n")
   local i_vec = 1
   for _,var in ipairs{"psi","theta"} do
     IC:write("-- ",var,"\n")
@@ -39,12 +63,13 @@ local function write_IC(inprod, initvec)
       i_vec = i_vec + 1
     end
   end
-  IC:write("}\n")
+  IC:write("  init_type = \"",init_type,"\",\n  size_of_random_noise = ",size_of_random_noise,",\n}")
   IC:close()
+  print("* Wrote template in "..fn)
 
   local tab=io.open("translation.txt","w")  -- always update translation.txt
-  assert(IC,"Translation file is not present and not writeable.")
-  tab:write("-- Translation table for the extended model :\n\n")
+  assert(tab,"Translation file is not present and not writeable.")
+  tab:write("-- Translation table for MAOOAM :\n\n")
   for _,var in ipairs{"psi","theta"} do
     tab:write("-- ",var,"\n")
     local i=0
@@ -65,7 +90,7 @@ local function write_IC(inprod, initvec)
   end
   tab:write("\n")
   tab:close()
-  return true
+  print("* Wrote translation table in translation.txt.")
 end
 
 return write_IC

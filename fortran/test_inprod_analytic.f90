@@ -8,6 +8,11 @@
 !> See LICENSE.txt for license information.                                  
 !
 !---------------------------------------------------------------------------!
+!
+!>  @remark
+!>  Print in the same order as test_inprod.lua
+!
+!---------------------------------------------------------------------------!
 
 
 PROGRAM inprod_analytic_test
@@ -23,7 +28,6 @@ PROGRAM inprod_analytic_test
   CALL init_params  ! Iniatialise the parameter
   CALL init_inprod  ! Initialise the inner product tensors
 
-  ! Print in the same order as lua/aomodel_extended/test_inprod.lua
 
   do i = 1, natm
     do j = 1, natm

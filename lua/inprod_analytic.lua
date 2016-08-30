@@ -13,8 +13,8 @@
 
 local params = require("params")
 
-local n, alpha = params.m.n, params.m.alpha
-local pi, exp, sqrt = math.pi, math.exp, math.sqrt
+local n = params.m.n
+local pi, sqrt = math.pi, math.sqrt
 -- Convert sparse arrays stored as {coordinate1, coordinate2, ..., value} to sparse tables:
 local new_sparse_table = require("tensor").new_sparse_table
 local atmos,ocean = {},{}
@@ -97,13 +97,14 @@ local function fill_permutations(indices,sparse_t,value)
   end
 end
 
--------------------------------------------------------------------------------
+----------------------------------------------------------------
 -- Inner products in the equations for the atmosphere
+----------------------------------------------------------------
 
 --- `a_{i,j} = (F_i, \nabla^2 F_j)`.
 atmos.a = new_sparse_table()
 local function calculate_a(i,j)
-  local Ti,Tj = get_awavenum[i],get_awavenum[j]
+  local Ti = get_awavenum[i]
   local value = (i==j) and -n^2*Ti.Nx^2 - Ti.Ny^2 or 0
   atmos.a:assign(value,i,j)
 end
@@ -194,6 +195,7 @@ end
 
 ----------------------------------------------------------------
 -- Inner products in the equations for the ocean
+----------------------------------------------------------------
 
 --- `K_{i,j} = (\eta_i, \nabla^2 F_j)`.
 -- Forcing of the atmosphere on the ocean.
@@ -209,7 +211,7 @@ end
 -- Forcing of the ocean fields on the ocean.
 ocean.M = new_sparse_table()
 local function calculate_M(i,j)
-  local Di,Dj = get_owavenum[i],get_owavenum[j]
+  local Di = get_owavenum[i]
   local value = (i==j) and -n^2*Di.Nx^2 - Di.Ny^2 or 0
   ocean.M:assign(value,i,j)
 end

@@ -1,5 +1,5 @@
 
-! maooam_tl_ad.f90
+! tl_ad_tensor.f90
 !
 !> Tangent Linear (TL) and Adjoint (AD) model versions of MAOOAM.
 !> Tensors definition module
@@ -16,14 +16,7 @@
 !                                                                           
 !---------------------------------------------------------------------------!
 
-MODULE maooam_tl_ad
-
-  !---------------------------------------------------------------------------!
-  ! maooam_tl_ad.f90                                                          !
-  ! (C) 2016 Lesley De Cruz & Jonathan Demaeyer                               !
-  ! See LICENSE.txt for license information.                                  !
-  !---------------------------------------------------------------------------!
-  !---------------------------------------------------------------------------!
+MODULE tl_ad_tensor
 
   !-----------------------------------------------------!
   !                                                     !
@@ -406,4 +399,4 @@ CONTAINS
     CALL sparse_mul3(tltensor,deltay,ystar,buf)
   END SUBROUTINE tl
 
-END MODULE maooam_tl_ad
+END MODULE tl_ad_tensor

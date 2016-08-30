@@ -26,15 +26,15 @@ MODULE rk4_tl_ad_integrator
   USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
 
-  USE maooam_tl_ad , only: ad,tl,jacobian_mat
+  USE tl_ad_tensor , only: ad,tl,jacobian_mat
   IMPLICIT NONE
 
   PRIVATE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_y1 !< Buffer to hold the intermediate position of the tangent linear model
-  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_y11 !< Buffer to hold the intermediate position of the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kA !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kB !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
+  REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_y11 !< Buffer to hold the intermediate position of the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kC !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: buf_kD !< Buffer to hold tendencies in the RK4 scheme for the tangent linear model
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: buf_j1 !< Buffer to hold jacobians in the RK4 scheme for the tangent linear model
@@ -50,7 +50,7 @@ MODULE rk4_tl_ad_integrator
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: one        !< unit matrix 
 
     
-  PUBLIC :: ad_step, evolve_ad_step, init_tl_ad_integrator, tl_step, evolve_tl_step,prop_step
+  PUBLIC :: ad_step, init_tl_ad_integrator, tl_step, evolve_ad_step, evolve_tl_step, prop_step
 
 CONTAINS
 

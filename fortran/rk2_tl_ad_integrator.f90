@@ -1,5 +1,5 @@
 
-! tl_ad_integrator.f90
+! rk2_tl_ad_integrator.f90
 !
 !> Tangent Linear (TL) and Adjoint (AD) model versions of MAOOAM.
 !> Integrators module.
@@ -19,14 +19,14 @@
 
 
 
-MODULE tl_ad_integrator
+MODULE rk2_tl_ad_integrator
 
   USE util, only: init_one
   USE params, only: ndim
   USE tensor, only: sparse_mul3
   USE aotensor_def, only: aotensor
 
-  USE maooam_tl_ad, only: ad,tl,jacobian_mat
+  USE tl_ad_tensor, only: ad,tl,jacobian_mat
   IMPLICIT NONE
 
   PRIVATE
@@ -46,7 +46,7 @@ MODULE tl_ad_integrator
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: one        !< unit matrix 
 
     
-  PUBLIC :: init_tl_ad_integrator, ad_step, evolve_ad_step, tl_step, evolve_tl_step, prop_step
+  PUBLIC :: init_tl_ad_integrator, ad_step, tl_step, evolve_ad_step, evolve_tl_step, prop_step
 
 CONTAINS
 
@@ -96,7 +96,7 @@ CONTAINS
     
     CALL ad(t,ystar,y,buf_f0)
     buf_y1 = y+dt*buf_f0
-    CALL ad(t,ystar,buf_y1,buf_f1)
+    CALL ad(t+dt,ystar,buf_y1,buf_f1)
     res=y+0.5*(buf_f0+buf_f1)*dt
     t=t+dt
   END SUBROUTINE ad_step
@@ -149,7 +149,7 @@ CONTAINS
 
     CALL tl(t,ystar,y,buf_f0)
     buf_y1 = y+dt*buf_f0
-    CALL tl(t,ystar,buf_y1,buf_f1)
+    CALL tl(t+dt,ystar,buf_y1,buf_f1)
     res=y+0.5*(buf_f0+buf_f1)*dt
     t=t+dt
   END SUBROUTINE tl_step
@@ -221,4 +221,4 @@ CONTAINS
 
 
   
-END MODULE tl_ad_integrator
+END MODULE rk2_tl_ad_integrator
