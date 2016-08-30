@@ -13,7 +13,7 @@
 !                                                                           
 !> @remark                                                                 
 !> Generated Fortran90/95 code 
-!> from ../../lua/aomodel_extended/aotensor.lua
+!> from aotensor.lua
 !                                                                           
 !---------------------------------------------------------------------------!
 

@@ -1,8 +1,8 @@
 
 !  maooam.f90
 !
-!> Fortran 90 implementation of the modular arbitrary-order ocean-atmosphere !
-!> model MAOOAM.                                                             !
+!> Fortran 90 implementation of the modular arbitrary-order ocean-atmosphere 
+!> model MAOOAM.
 !
 !> @copyright                                                               
 !> 2015 Lesley De Cruz & Jonathan Demaeyer.
@@ -14,13 +14,14 @@ PROGRAM maooam
   USE params, only: ndim, dt, tw, t_trans, t_run, writeout
   USE aotensor_def, only: init_aotensor
   USE IC_def, only: load_IC, IC
-  USE integrator, only: init_integrator,step
+  USE rk2_integrator, only: init_integrator,step
   USE stat
   IMPLICIT NONE
 
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: X       !< State variable in the model
   REAL(KIND=8), DIMENSION(:), ALLOCATABLE :: Xnew    !< Updated state variable
   REAL(KIND=8) :: t=0.D0                             !< Time variable
+  REAL(KIND=8) :: t_up
 
   PRINT*, 'Model MAOOAM v1.0'
   PRINT*, 'Loading information...'
@@ -30,6 +31,8 @@ PROGRAM maooam
   CALL load_IC          ! Load the initial condition
 
   CALL init_integrator  ! Initialize the integrator
+
+  t_up=dt/t_trans*100.D0
 
   IF (writeout) OPEN(10,file='evol_field.dat')
 
@@ -42,6 +45,7 @@ PROGRAM maooam
   DO WHILE (t<t_trans)
      CALL step(X,t,dt,Xnew)
      X=Xnew
+     IF (mod(t/t_trans*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_trans*100.D0,char(13)
   END DO
 
   PRINT*, 'Starting the time evolution...'
@@ -57,6 +61,7 @@ PROGRAM maooam
         IF (writeout) WRITE(10,*) t,X(1:ndim)
         CALL acc(X)
      END IF
+     IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
   END DO
 
   PRINT*, 'Evolution finished.'

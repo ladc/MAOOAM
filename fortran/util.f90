@@ -42,7 +42,7 @@ CONTAINS
   !> Random generator initialization routine  
   SUBROUTINE init_random_seed()
     USE iso_fortran_env, only: int64
-    USE IFPORT, only: getpid
+    !USE IFPORT, only: getpid
     IMPLICIT NONE
     INTEGER, ALLOCATABLE :: seed(:)
     INTEGER :: i, n, un, istat, dt(8), pid

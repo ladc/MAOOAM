@@ -18,13 +18,14 @@ local format = string.format
 -- @param params parameter table as loaded from "params.lua"
 -- @param st statistics object to be initialized; if not given, none will be
 -- initialized.
+-- @param snapfn Snapshot filename.
 -- @return time step at which the snapshot was restored
 -- @return state of the system from the snapshot
-local function restore(params, st)
+local function restore(params, st, snapfn)
+  snapfn = snapfn or params.i.getoutfn("_snapshot")
   -- Check if snapshot file exists
-  local snapfn = params.i.getoutfn("_snapshot")
   local snapf = io.open(snapfn,"r")
-  if not snapf then return end
+  if not snapf or snapf:read("*a")=="" then return end
   snapf:close()
   -- number of lines depends on whether statistics are also in the snapshot file
   local lines = params.i.statistics and 4 or 1
@@ -32,6 +33,7 @@ local function restore(params, st)
   snapf = io.popen(format("tail -n%d %s",lines,snapfn),"r")
   local t_init = assert(tonumber(snapf:read("*n")), "Could not read t_init from "..snapfn..
   ". Please verify that the previous run was done with the same parameters.")
+  io.write(format("* Restored from %s:\n",snapfn))
   io.write(format("* Continuing run of %e time units from time %e\n",params.i.t_run+params.i.t_trans,t_init))
   local initialconditions = {}
   for i=1,n-1 do

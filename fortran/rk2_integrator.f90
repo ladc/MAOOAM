@@ -1,5 +1,5 @@
 
-! ic_def.f90
+! rk2_integrator.f90
 !
 !>  Module with the integration routines.
 !
@@ -16,7 +16,7 @@
 !                                                                           
 !---------------------------------------------------------------------------
 
-MODULE integrator
+MODULE rk2_integrator
   USE params, only: ndim
   USE tensor, only:sparse_mul3
   USE aotensor_def, only: aotensor
@@ -70,4 +70,4 @@ CONTAINS
     t=t+dt
   END SUBROUTINE step
 
-END MODULE integrator
+END MODULE rk2_integrator

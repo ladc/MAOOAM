@@ -5,6 +5,14 @@
 ------------------------------------------------------------------------
 -- Integration parameters and physical parameters for the modular
 -- arbitrary-order ocean-atmosphere model MAOOAM.
+--
+-- Parameters of the runs of the article:
+--
+-- The role of the ocean mixed layer on the development of the North Atlantic
+-- Oscillation: A dynamical system's perspective. Vannitsem, Stephane.
+-- Geophysical Research Letters, 42(20), 8615-8623, (2015).
+-- url: http://onlinelibrary.wiley.com/doi/10.1002/2015GL065974/full
+-- doi: 10.1002/2015GL065974
 ------------------------------------------------------------------------
 
 local sqrt, cos, sin, pi = math.sqrt, math.cos, math.sin, math.pi
@@ -12,18 +20,17 @@ local sqrt, cos, sin, pi = math.sqrt, math.cos, math.sin, math.pi
 --- Integration parameters
 -- @table params.i
 local i = {
-  t_trans = 1e4,  -- transient period (e.g. 1e7)
-  t_run   = 1e5,  -- length of trajectory on the attractor (e.g. 5e8)
+  t_trans = 1e8,  -- transient period (e.g. 1e7)
+  t_run   = 3e8,  -- length of trajectory on the attractor (e.g. 5e8)
   dt      = 1e-2, -- the time step
   out_prefix = "output_maooam_", -- prefix for the output file name
-  writeout = 10, -- write out all variables every 'writeout' time units
+  writeout = 100, -- write out all variables every 'writeout' time units
   statistics = 10, -- accumulate statistics every 'statistics' time units
   compression = true, -- compress output of trajectory (if writeout == true)
   snapshot = 1e4, -- write out state every 'snapshot' time units (false = no writeout)
-  walltime = 3600*48, -- run a timer for 'walltime' seconds and exit cleanly when reached.
+  walltime = false, -- run a timer for 'walltime' seconds and exit cleanly when reached.
   -- randomseed = 12345, -- seed for the random generator (integer)
-  rescaling_time = 1e-2,
-  integrator = "rk4", -- numerical integration scheme, e.g. "rk2" or "rk4"
+  integrator = "rk2", -- numerical integration scheme, e.g. "rk2" or "rk4"
 }
 
 --- Model parameters
@@ -37,26 +44,26 @@ local m = {
   phi0  = pi/4,    -- latitude
   --- Parameters for the ocean
   gp    = 3.1e-2,  -- reduced gravity
-  r     = 1e-8,    -- frictional coefficient at the bottom of the ocean
-  H     = 5e2,     -- depth of the water layer
+  r     = 1e-7,    -- frictional coefficient at the bottom of the ocean
+  H     = 164.8,     -- depth of the water layer
   alpha = 0,       -- coefficient characterizing the intensification of the flow on the western boundaries
-  d     = 1e-8,    -- the coupling parameter (should be divided by f0 in order to be adimensional)
+  d     = 1.1e-7,    -- the coupling parameter (should be divided by f0 in order to be adimensional)
   -- Parameters for the atmosphere
-  k    = 2e-2, -- bottom friction coefficient
-  kp   = 4e-2, -- internal friction coefficient
+  k    = 0.0145, -- bottom friction coefficient
+  kp   = 0.0290, -- internal friction coefficient
   sig0 = 1e-1, -- static stability
   -- Temperature-related parameters for the ocean
-  Go     = 2e8,  -- Specific heat capacity of the ocean (50m layer)
-  Co     = 350,  -- Constant short-wave radiation of the ocean
-  To0    = 285,-- Stationary solution for the 0-th order ocean temperature
+  Go     = 5.46e8,  -- Specific heat capacity of the ocean (50m layer)
+  Co     = 310,  -- Constant short-wave radiation of the ocean
+  To0    = 301.46,-- Stationary solution for the 0-th order ocean temperature
   -- Temperature-related parameters for the atmosphere
   Ga     = 1e7,  -- Specific heat capacity of the atmosphere
-  Ca     = 100,  -- Constant short-wave radiation of the atmosphere
-  epsa   = 0.76, -- Emissivity coefficient for the grey-body atmosphere
-  Ta0    = 270,-- Stationary solution for the 0-th order atmospheric temperature
+  Ca     = 103.3333,  -- Constant short-wave radiation of the atmosphere
+  epsa   = 0.7, -- Emissivity coefficient for the grey-body atmosphere
+  Ta0    = 289.30,-- Stationary solution for the 0-th order atmospheric temperature
   -- Other temperature-related parameters/constants
   sc     = 1,    -- Ratio of surface to atmosphere temperature
-  lambda = 20,   -- Sensible + turbulent heat exchange between ocean and atmosphere
+  lambda = 15.06,   -- Sensible + turbulent heat exchange between ocean and atmosphere
   R      = 287,  -- Gas constant of dry air
   sB     = 5.6e-8, -- Stefan–Boltzmann constant
 }
@@ -81,7 +88,7 @@ m.sBpa = 8*m.epsa*m.sB*m.Ta0^3 / (m.Go*m.f0) -- long wave radiation from atmosph
 m.SBpo = 2*m.epsa*m.sB*m.To0^3 / (m.Ga*m.f0) -- long wave radiation from ocean absorbed by atmosphere
 m.SBpa = 8*m.epsa*m.sB*m.Ta0^3 / (m.Ga*m.f0) -- long wave radiation lost by atmosphere to space & ocean
 
--- set random seed
+--- set random seed
 require("rand").setrandomseed(i.randomseed, true) -- verbose
 
 --- Generator for output file name

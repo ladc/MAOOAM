@@ -16,7 +16,7 @@
 !                                                                           
 !> @remark                                                                 
 !> Generated Fortran90/95 code 
-!> from ../../lua/aomodel_extended/inprod_analytic.lua
+!> from inprod_analytic.lua
 !                                                                           
 !---------------------------------------------------------------------------!
 
@@ -530,7 +530,7 @@ CONTAINS
 
     DO i=1,noc
        DO j=i,noc
-          DO k=i,noc
+          DO k=j,noc
              Di = owavenum(i)
              Dj = owavenum(j)
              Dk = owavenum(k)

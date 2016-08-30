@@ -10,8 +10,9 @@ See LICENSE.txt for license information.
 
 This software is provided as supplementary material with:
 
-* De Cruz, L., Demaeyer, J. and Vannitsem, S.: A modular arbitrary-order
-ocean-atmosphere model: MAOOAM v1.0, Geosci. Model Dev. Discuss., 2016.
+* De Cruz, L., Demaeyer, J. and Vannitsem, S.: The Modular Arbitrary-Order
+Ocean-Atmosphere Model: MAOOAM v1.0, Geosci. Model Dev., 9, 2793-2808,
+[doi:10.5194/gmd-9-2793-2016](http://dx.doi.org/10.5194/gmd-9-2793-2016), 2016.
 
 **Please cite this article if you use (a part of) this software for a
 publication.**
