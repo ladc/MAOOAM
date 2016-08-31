@@ -75,6 +75,7 @@ MODULE params
   REAL(KIND=8) :: offset         !< Roffset for starting Lyapunov vector computatio
   REAL(KIND=8) :: length_lyap    !< length of computation (i.e. turning of Ginelli); "0" full time series
   REAL(KIND=8) :: rescaling_time !< Rescaling time for the Lyapunov computation
+  REAL(KIND=8) :: maxfilesize    !< Maximum file size in MB
   LOGICAL      :: compute_BLV    !< compute BLV
   LOGICAL      :: compute_BLV_LE !< compute LEs of BLV
   REAL(KIND=8) :: conv_BLV       !< wait for convergence BLV
@@ -83,6 +84,16 @@ MODULE params
   REAL(KIND=8) :: conv_FLV       !< wait for convergence FLV
   LOGICAL      :: compute_CLV    !< compute CLV
   LOGICAL      :: compute_CLV_LE !< compute LEs of CLV
+
+
+  LOGICAL :: directionBLV        !< read/write direction for BLV    
+  LOGICAL :: directionFLV        !< read/write direction for FLV    
+  LOGICAL :: directionCLV        !< read/write direction for CLV    
+  LOGICAL :: directionBLE        !< read/write direction for BLE    
+  LOGICAL :: directionFLE        !< read/write direction for FLE    
+  LOGICAL :: directionCLE        !< read/write direction for CLE    
+  LOGICAL :: directionR          !< read/write direction for R matrix    
+  LOGICAL :: directionPROP       !< read/write direction for propagator matrix    
   
   INTEGER :: nboc   !< Number of atmospheric blocks
   INTEGER :: nbatm  !< Number of oceanic blocks
@@ -113,7 +124,9 @@ CONTAINS
     NAMELIST /numblocs/ nboc,nbatm
 
     NAMELIST /int_params/ t_trans,t_run,dt,tw,writeout
-    NAMELIST /lyap_params/ offset,length_lyap,rescaling_time,compute_BLV,compute_BLV_LE,conv_BLV,compute_FLV,compute_FLV_LE,conv_FLV,compute_CLV,compute_CLV_LE
+    NAMELIST /lyap_params/ offset,length_lyap,rescaling_time,maxfilesize, compute_BLV, &
+    & compute_BLV_LE,conv_BLV,compute_FLV,compute_FLV_LE,conv_FLV,compute_CLV,compute_CLV_LE, &
+    &directionBLV, directionFLV, directionCLV, directionBLE, directionFLE, directionCLE,directionR,directionPROP
 
     OPEN(8, file="params.nml", status='OLD', recl=80, delim='APOSTROPHE')
 

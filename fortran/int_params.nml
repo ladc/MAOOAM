@@ -6,7 +6,7 @@
 !  Scale parameters for the ocean and the atmosphere
 &INT_PARAMS
   T_TRANS = 1.D2       !  transient period (e.g. 1.D7)
-  T_RUN = 1.D2         !  length of trajectory on the attractor (e.g. 5.D8)
+  T_RUN = 1.D5         !  length of trajectory on the attractor (e.g. 5.D8)
   DT = 5.D-2           !  the time step
   WRITEOUT = T         !  write out all variables every tw time units
   TW = 10.D0           !
@@ -16,6 +16,7 @@
   OFFSET = 0              ! offset for starting Lyapunov vector computation
   LENGTH_LYAP = 0         ! length of computation (i.e. turning of Ginelli); "0" full time series
   RESCALING_TIME = 5.D-2  ! Rescaling time for the Lyapunov computation
+  MAXFILESIZE = 1024      ! Maximum file size in MB
   COMPUTE_BLV = .true.    ! compute BLV
   COMPUTE_BLV_LE = .true. ! compute LEs of BLV
   CONV_BLV = 0.D0         ! wait for convergence BLV
@@ -24,6 +25,14 @@
   CONV_FLV = 0.D0         ! wait for convergence FLV
   COMPUTE_CLV = .true.    ! compute CLV
   COMPUTE_CLV_LE = .true. ! compute LEs of CLV
+  directionBLV = .true.   ! read/write direction in reverse for BLV    
+  directionFLV = .true.   ! read/write direction in reverse for FLV    
+  directionCLV = .true.   ! read/write direction in reverse for CLV    
+  directionBLE = .false.  ! read/write direction in reverse for BLE    
+  directionFLE = .false.  ! read/write direction in reverse for FLE    
+  directionCLE = .false.  ! read/write direction in reverse for CLE    
+  directionR   = .true.   ! read/write direction in reverse for R matrix    
+  directionPROP= .true.   ! read/write direction in reverse for propagator matrix    
 &END
 
 
