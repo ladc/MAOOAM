@@ -101,7 +101,6 @@ PROGRAM maooam_lyapvectors
     
   IndexBen=Int(floor(offset/rescaling_time)) ! Index for lyapunov vector calculations
   DO WHILE (t .LE. length_lyap)
-
      CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
      X=Xnew
@@ -127,7 +126,9 @@ PROGRAM maooam_lyapvectors
   ELSE
     CALL write_IC('final_state_offset_'//trim(str(int(offset))),X) 
   END IF
-
+!
+! Start Backward Integration
+!
   IF (compute_CLV .OR. compute_CLV_LE .OR. compute_FLV .OR. compute_FLV_LE) THEN
     PRINT*, 'Starting the backward evolution ...'
     IF (compute_FLV .OR. compute_FLV_LE) THEN
@@ -141,7 +142,7 @@ PROGRAM maooam_lyapvectors
       CALL compute_exponents(t,IndexBen,.false.)
       CALL compute_vectors(t,IndexBen,.false.)
       IndexBen=IndexBen-1
-      t=t-dt
+      t=t-rescaling_time
       IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
     END DO
   END IF

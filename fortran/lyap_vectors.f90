@@ -100,12 +100,12 @@ CONTAINS
     ! Files for output and temporary storage
     ! Maximum number of rescaling_time length time steps: maxfilesize*1024*1024/(8*ndim^2).
     timestepsperfile = int(ceiling(maxfilesize*1024.*1024./dble(8*ndim*ndim)))
-    totalnumtimesteps = floor(t_run/rescaling_time)
+    totalnumtimesteps = floor(t_run/rescaling_time) + 1
     numfiles = ceiling(totalnumtimesteps/dble(timestepsperfile))
-    stride=10.**ceiling(log(dble(numfiles))/log(10.))
-
+    stride=int(10.**ceiling(log(dble(numfiles))/log(10.)))
+    IF (stride.eq.1) stride=10
     DO k=1,numfiles
-      IF (compute_BLV .OR. compute_CLV_LE)&
+      IF (compute_BLV .OR. compute_CLV)&
       &OPEN(12*stride+k,file='BLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_BLV_LE) &
@@ -149,6 +149,9 @@ CONTAINS
     IF (AllocStat /= 0) STOP "*** Not enough memory ! ***"
     
     CALL init_ensemble 
+    IF (compute_BLV .OR. compute_CLV) THEN
+      CALL write_lyapvec(1,BLV,12,directionBLV) 
+    END IF
     IF (compute_CLV .OR. compute_CLV_LE) THEN
       CALL random_number(CLV)
       DO info=1,ndim
@@ -169,6 +172,8 @@ CONTAINS
     CALL random_number(ensemble)
     ensemble=2*(ensemble-0.5)
     CALL DGEQRF(ndim,ndim,ensemble,ndim,tau,work,lwork, info) ! qr decomposition
+    BLV=ensemble ! make copy of QR decomposed ensemble     
+    CALL DORGQR(ndim,ndim,ndim,BLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix 
   END SUBROUTINE init_ensemble
 
   !> Multiplies prop_mul from the left with the prop matrix defined in this
