@@ -384,7 +384,7 @@ CONTAINS
           j=t(i)%elems(n)%j
           k=t(i)%elems(n)%k
           IF( ABS(t(i)%elems(n)%v) .GE. real_eps) THEN
-             write(*,"(A,ES12.5)") s//"["//TRIM(str(i))//"]["//TRIM(str(j)) &
+             write(*,"(A,ES12.5)") r//"["//TRIM(str(i))//"]["//TRIM(str(j)) &
                   &//"]["//TRIM(str(k))//"] = ",t(i)%elems(n)%v
           END IF
        END DO
