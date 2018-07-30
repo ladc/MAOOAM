@@ -136,6 +136,9 @@ CONTAINS
     READ(8,nml=int_params)
     READ(8,nml=lyap_params)
 
+    IF (rescaling_time < dt) STOP "*** int_params.nml: rescaling_time should be at least dt ! ***"
+    IF (modulo(rescaling_time,dt) /= 0) &
+      & STOP "*** int_params.nml: rescaling_time should be a multiple of dt ! ***"
   END SUBROUTINE init_nml
 
   !> Parameters initialisation routine 
