@@ -26,7 +26,7 @@ PROGRAM maooam_lyap_div
   REAL(KIND=8) :: t_up
   CHARACTER(LEN=19) :: FMTX
 
-  PRINT*, 'Model MAOOAM v1.0'
+  PRINT*, 'Model MAOOAM v1.3'
   PRINT*, '      - with computation of the first Lyapunov exponent with the divergence method'
   PRINT*, 'Loading information...'
 

@@ -30,7 +30,7 @@ PROGRAM maooam_lyap
   INTEGER :: IndexBen,WRSTAT
   CHARACTER(LEN=19) :: FMTX
 
-  PRINT*, 'Model MAOOAM v1.0'
+  PRINT*, 'Model MAOOAM v1.3'
   PRINT*, '      - with computation of the Lyapunov spectrum'
   PRINT*, 'Loading information...'
 
