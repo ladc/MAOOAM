@@ -47,7 +47,7 @@ local m = {
   sig0 = 1e-1, -- static stability
   nua  = 0,  -- dissipation in the atmosphere
   -- Temperature-related parameters for the ocean
-  Go     = 2e8,  -- Specific heat capacity of the ocean (50m layer)
+  Go     = 2e8,  -- Specific heat capacity of the ocean (layer)
   Co     = 350,  -- Constant short-wave radiation of the ocean
   To0    = 285,-- Stationary solution for the 0-th order ocean temperature
   -- Temperature-related parameters for the atmosphere

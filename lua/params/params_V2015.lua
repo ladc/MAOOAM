@@ -53,7 +53,7 @@ local m = {
   kp   = 0.0290, -- internal friction coefficient
   sig0 = 1e-1, -- static stability
   -- Temperature-related parameters for the ocean
-  Go     = 5.46e8,  -- Specific heat capacity of the ocean (50m layer)
+  Go     = 5.46e8,  -- Specific heat capacity of the ocean (layer)
   Co     = 310,  -- Constant short-wave radiation of the ocean
   To0    = 301.46,-- Stationary solution for the 0-th order ocean temperature
   -- Temperature-related parameters for the atmosphere

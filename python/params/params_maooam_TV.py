@@ -160,7 +160,7 @@ kp    = 0.0290    #  atmosphere internal friction coefficient
 sig0  = 0.1e0     #  static stability of the atmosphere
 
 #Temperature-related parameters for the ocean
-Go    = 6.6e8      #  Specific heat capacity of the ocean (50m layer)
+Go    = 6.6e8      #  Specific heat capacity of the ocean (layer)
 Co    = 310   #310.0 GMD Constant short-wave radiation of the ocean
 To0   = 299.35    #  Stationary solution for the 0-th order ocean temperature
 
