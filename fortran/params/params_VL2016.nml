@@ -40,7 +40,7 @@
 
 !  Temperature-related parameters for the ocean
 &TOPARAMS
-  GO = 2.D8          !  Specific heat capacity of the ocean (50m layer)
+  GO = 2.D8          !  Specific heat capacity of the ocean (layer)
   CO = 350.D0        !  Constant short-wave radiation of the ocean
   TO0 = 285.D0       !  Stationary solution for the 0-th order ocean temperature
 &END
