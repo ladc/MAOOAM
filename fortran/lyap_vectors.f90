@@ -263,7 +263,7 @@ CONTAINS
    IF (past_conv_BLV) THEN
      IF (forward) THEN
 
-       IF (compute_BLV .AND. before_conv_FLV) THEN
+       IF ((compute_BLV .OR. compute_CLV) .AND. before_conv_FLV) THEN
          BLV=ensemble ! make copy of QR decomposed ensemble     
          CALL DORGQR(ndim,ndim,ndim,BLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix 
          CALL write_lyapvec(step+1,BLV,12,directionBLV) !write Q (BLV) matrix
