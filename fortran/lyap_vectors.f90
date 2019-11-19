@@ -29,7 +29,7 @@ MODULE lyap_vectors
   !                                                     !
   !-----------------------------------------------------!
 
-  USE params, only: ndim,dt,rescaling_time, maxfilesize, compute_BLV,compute_BLV_LE,&
+  USE params, only: ndim,dt,rescaling_time,sampling_time, maxfilesize, compute_BLV,compute_BLV_LE,&
    &conv_BLV,compute_FLV,compute_FLV_LE, conv_FLV,compute_CLV_LE,compute_CLV, length_lyap,offset,t_run,&
    &directionBLV, directionFLV, directionCLV, directionBLE, directionFLE, directionCLE,directionR,directionPROP
 
@@ -54,6 +54,7 @@ MODULE lyap_vectors
    
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: ensemble !< Buffer containing the QR decompsoition of the ensemble
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop     !< Buffer holding the propagator matrix
+  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prodR    !< Buffer containing the product of R matrices over the sampling_time period
   
   INTEGER :: lwork
   REAL(kind=8), DIMENSION(:), ALLOCATABLE :: work       !< Temporary buffer for QR decomposition
@@ -92,6 +93,8 @@ CONTAINS
     INTEGER :: AllocStat,ilaenv,info,k
     ALLOCATE(one(ndim,ndim))
     CALL init_one(one)
+    ALLOCATE(prodR(ndim,ndim))
+    CALL init_one(prodR)
     lwork=ilaenv(1,"dgeqrf"," ",ndim,ndim,ndim,-1)
     lwork=ndim*lwork
     ALLOCATE(prop_buf(ndim,ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
@@ -100,7 +103,7 @@ CONTAINS
     ! Files for output and temporary storage
     ! Maximum number of rescaling_time length time steps: maxfilesize*1024*1024/(8*ndim^2).
     timestepsperfile = int(ceiling(maxfilesize*1024.*1024./dble(8*ndim*ndim)))
-    totalnumtimesteps = floor(t_run/rescaling_time) + 1
+    totalnumtimesteps = floor(t_run/sampling_time) + 1
     numfiles = ceiling(totalnumtimesteps/dble(timestepsperfile))
     stride=int(10.**ceiling(log(dble(numfiles))/log(10.)))
     IF (stride.eq.1) stride=10
@@ -238,7 +241,7 @@ CONTAINS
       CALL read_R(step,33,directionR)
       CALL DTPTRS('u','n','n',ndim,ndim,R,CLV,ndim,info)
       CALL normMAT(CLV,loclyap_CLV)
-      loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
+      loclyap_CLV=-log(abs(loclyap_CLV))/sampling_time
    END SUBROUTINE ginelli
 
    !> Routine that returns the current global propagator and ensemble of
@@ -251,10 +254,10 @@ CONTAINS
 
    !> Routine that saves the BLV, FLV and CLV if in right time period according
    !> to namelist parameters in int_params.nml
-   SUBROUTINE compute_vectors(t,step,forward)
+   SUBROUTINE compute_vectors(t,step,forward,write_sample)
    INTEGER :: step
    REAL(KIND=8) :: t
-   LOGICAL :: forward
+   LOGICAL :: forward, write_sample
    LOGICAL :: past_conv_BLV,before_conv_FLV
    INTEGER :: info
 
@@ -265,14 +268,24 @@ CONTAINS
 
        IF ((compute_BLV .OR. compute_CLV) .AND. before_conv_FLV) THEN
          BLV=ensemble ! make copy of QR decomposed ensemble     
-         CALL DORGQR(ndim,ndim,ndim,BLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix 
-         CALL write_lyapvec(step+1,BLV,12,directionBLV) !write Q (BLV) matrix
+         CALL DORGQR(ndim,ndim,ndim,BLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix
+         IF (write_sample) THEN
+           CALL write_lyapvec(step+1,BLV,12,directionBLV) !write Q (BLV) matrix
+         END IF
        END IF
 
        IF (compute_FLV .OR. compute_FLV_LE) CALL write_lyapvec(step,prop,23,directionPROP)
        IF (compute_CLV .OR. compute_CLV_LE) THEN
-         CALL packTRI(ensemble,R)
-         CALL write_R(step,33,directionR)
+         ! We left-multiply the R with the accumulated R in prodR.
+         CALL DTRMM('l','u','n','n',ndim,ndim,1.0,ensemble,ndim,prodR,ndim)
+         ! When sampling_time is done, we store the accumulated R.
+         IF (write_sample) THEN
+           ! The accumulated R matrix is in prodR, and will be packed in R.
+           CALL packTRI(prodR,R)
+           CALL write_R(step,33,directionR)
+           CALL init_one(prodR)
+         END IF
+
        END IF
 
      ELSE

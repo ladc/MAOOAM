@@ -11,7 +11,7 @@
 !---------------------------------------------------------------------------!
 
 PROGRAM maooam_lyapvectors
-  USE params, only: ndim, dt, tw, t_trans, t_run, writeout, rescaling_time, compute_BLV_LE,&
+  USE params, only: ndim, dt, tw, t_trans, t_run, writeout, rescaling_time, sampling_time, compute_BLV_LE,&
  & compute_BLV, conv_BLV,compute_FLV, compute_FLV_LE, conv_FLV,compute_CLV, compute_CLV_LE,length_lyap,offset 
   USE aotensor_def, only: init_aotensor
   USE tl_ad_tensor, only: init_tltensor
@@ -31,7 +31,8 @@ PROGRAM maooam_lyapvectors
   REAL(KIND=8) :: t=0.D0                                   !< Time variable
   REAL(KIND=8) :: resc=1.D-9                               !< Variable rescaling factor for the divergence method
   REAL(KIND=8) :: t_up
-  INTEGER :: IndexBen,WRSTAT
+  INTEGER :: IndexBen,IndexSample,WRSTAT
+  LOGICAL :: write_sample
   CHARACTER(LEN=20) :: FMTX
 
   PRINT*, 'Model MAOOAM v1.0'
@@ -100,17 +101,25 @@ PROGRAM maooam_lyapvectors
   !
     
   IndexBen=Int(floor(offset/rescaling_time)) ! Index for lyapunov vector calculations
+  IndexSample=Int(floor(offset/sampling_time)) ! Index for lyapunov vector calculations
   DO WHILE (t .LE. length_lyap)
      CALL prop_step(X,prop_buf,t,dt,Xnew,.false.) ! Obtains propagator prop_buf at X
      CALL multiply_prop(prop_buf) ! Multiplies prop_buf with prop
      X=Xnew
 
      IF (mod(t,rescaling_time)<dt .AND. t.GT.offset) THEN
+        write_sample = mod(t,sampling_time)<dt
         IndexBen=IndexBen+1
         CALL benettin_step(.true.,IndexBen) ! Performs QR step with prop
-        CALL compute_exponents(t,IndexBen,.true.)
+        IF (write_sample) THEN
+          IndexSample=IndexSample+1
+          ! compute_exponents in fact only writes, so we don't need to call it every rescaling_time.
+          CALL compute_exponents(t,IndexSample,.true.)
+        END IF
         CALL acc(X)
-        CALL compute_vectors(t,IndexBen,.true.)
+        ! Because compute_vectors also accumulates prodR and computes BLVs, we need to call it every rescaling_time even though it's
+        ! not always writing out the result (only at write_sample=true)
+        CALL compute_vectors(t,IndexSample,.true.,write_sample)
      END IF
      IF (mod(t,tw)<dt) THEN
         !! Uncomment if you want the trajectory (may generate a huge file!)
@@ -137,11 +146,16 @@ PROGRAM maooam_lyapvectors
     DO WHILE (t>offset .AND. IndexBen>0)
 
       IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
-      IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexBen)               ! Performs Ginelli step with prop
+        
+      write_sample = mod(t,sampling_time)<dt
 
-      CALL compute_exponents(t,IndexBen,.false.)
-      CALL compute_vectors(t,IndexBen,.false.)
+      CALL compute_exponents(t,IndexSample,.false.)
+      CALL compute_vectors(t,IndexSample,.false.,write_sample)
       IndexBen=IndexBen-1
+      IF (write_sample) THEN
+        IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexSample)               ! Performs Ginelli step with prop
+        IndexSample=IndexSample-1
+      END IF
       t=t-rescaling_time
       IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
     END DO
