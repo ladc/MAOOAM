@@ -22,7 +22,7 @@ GCC_LD_FLAGS = -llapack -lblas
 # Debug Case:
 IFORT_COMPILER_FLAGS_DBG = -O0 -check all -traceback -fpe0 -check bounds -debug all -check uninit -ftrapuv -assume byterecl
 IFORT_LD_FLAGS_DBG = -llapack -lblas
-GCC_COMPILER_FLAGS_DBG = -frecord-marker=8 -O3 
+GCC_COMPILER_FLAGS_DBG = -frecord-marker=8 -ggdb -O0  
 GCC_LD_FLAGS_DBG = -llapack -lblas
 
 
@@ -41,7 +41,9 @@ ifeq ($(COMPILER),gfortran)
   
   ifeq ($(COMPILER),gfortran)
     ifeq ($(GE40600), 0)
-      $(error GCC/gfortran version $(GVERSION) detected. This program uses features of gfortran >= 4.6.0. Please update your toolchain)
+      ifneq ($(GVERSION), 7)
+        $(error GCC/gfortran version $(GVERSION) detected. This program uses features of gfortran >= 4.6.0. Please update your toolchain)
+      endif
     endif
   else
     $(warning This code was optimized for gfortran >= 4.6.0 and has not been tested with other compilers)
