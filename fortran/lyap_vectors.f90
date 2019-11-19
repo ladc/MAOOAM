@@ -292,13 +292,17 @@ CONTAINS
        IF (compute_FLV .AND. before_conv_FLV) THEN
          FLV=ensemble ! make copy of QR decomposed ensemble     
          CALL DORGQR(ndim,ndim,ndim,FLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix 
-         CALL write_lyapvec(step,FLV,22,directionFLV)
+         IF (write_sample) THEN
+           CALL write_lyapvec(step,FLV,22,directionFLV)
+         END IF
        END IF
 
        IF (compute_CLV .AND. before_conv_FLV) THEN
-         CALL read_lyapvec(step,BLV,12,directionBLV)
-         CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,buf_CLV,ndim) 
-         CALL write_lyapvec(step,buf_CLV,32,directionCLV) 
+         IF (write_sample) THEN
+           CALL read_lyapvec(step,BLV,12,directionBLV)
+           CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,buf_CLV,ndim) 
+           CALL write_lyapvec(step,buf_CLV,32,directionCLV)
+         END IF
        END IF
      END IF
    END IF   
