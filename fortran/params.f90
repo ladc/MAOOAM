@@ -75,6 +75,7 @@ MODULE params
   REAL(KIND=8) :: offset         !< Roffset for starting Lyapunov vector computatio
   REAL(KIND=8) :: length_lyap    !< length of computation (i.e. turning of Ginelli); "0" full time series
   REAL(KIND=8) :: rescaling_time !< Rescaling time for the Lyapunov computation
+  REAL(KIND=8) :: sampling_time  !< Sampling time for the Lyapunov computation. CLEs will be averaged over this interval.
   REAL(KIND=8) :: maxfilesize    !< Maximum file size in MB
   LOGICAL      :: compute_BLV    !< compute BLV
   LOGICAL      :: compute_BLV_LE !< compute LEs of BLV
@@ -124,7 +125,7 @@ CONTAINS
     NAMELIST /numblocs/ nboc,nbatm
 
     NAMELIST /int_params/ t_trans,t_run,dt,tw,writeout
-    NAMELIST /lyap_params/ offset,length_lyap,rescaling_time,maxfilesize, compute_BLV, &
+    NAMELIST /lyap_params/ offset,length_lyap,rescaling_time,sampling_time,maxfilesize, compute_BLV, &
     & compute_BLV_LE,conv_BLV,compute_FLV,compute_FLV_LE,conv_FLV,compute_CLV,compute_CLV_LE, &
     &directionBLV, directionFLV, directionCLV, directionBLE, directionFLE, directionCLE,directionR,directionPROP
 
