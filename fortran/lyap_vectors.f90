@@ -109,7 +109,7 @@ CONTAINS
     numsamplefiles = ceiling(totalnumsamples/dble(timestepsperfile))
     stride=int(10.**ceiling(log(dble(numfiles))/log(10.)))
     IF (stride.eq.1) stride=10
-    DO k=1,numfiles
+    DO k=1,numsamplefiles
       IF (compute_BLV .OR. compute_CLV)&
       &OPEN(12*stride+k,file='BLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
@@ -129,7 +129,7 @@ CONTAINS
       &OPEN(31*stride+k,file='CLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
     END DO
-    DO k=1,numsamplefiles
+    DO k=1,numfiles
       IF (compute_FLV .OR. compute_FLV_LE) &
       &OPEN(23*stride+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
