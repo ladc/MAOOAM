@@ -144,15 +144,16 @@ PROGRAM maooam_lyapvectors
       CALL init_ensemble
     END IF
     DO WHILE (t>offset .AND. IndexBen>0 .AND. IndexSample>0)
-      IndexBen=IndexBen-1
+
+      IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
+      IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexSample)               ! Performs Ginelli step with prop
       write_sample = mod(t,sampling_time)<dt
       CALL compute_vectors(t,IndexBen,IndexSample,.false.,write_sample)
       IF (write_sample) THEN
-        IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexSample) ! Performs QR step with prop
         CALL compute_exponents(t,IndexSample,.false.)
-        IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexSample)               ! Performs Ginelli step with prop
         IndexSample=IndexSample-1
       END IF
+      IndexBen=IndexBen-1
       t=t-rescaling_time
       IF (mod(t/t_run*100.D0,0.1)<t_up) WRITE(*,'(" Progress ",F6.1," %",A,$)') t/t_run*100.D0,char(13)
     END DO
