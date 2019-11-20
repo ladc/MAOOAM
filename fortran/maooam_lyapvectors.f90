@@ -119,7 +119,7 @@ PROGRAM maooam_lyapvectors
         CALL acc(X)
         ! Because compute_vectors also accumulates prodR and computes BLVs, we need to call it every rescaling_time even though it's
         ! not always writing out the result (only at write_sample=true)
-        CALL compute_vectors(t,IndexSample,.true.,write_sample)
+        CALL compute_vectors(t,IndexBen,IndexSample,.true.,write_sample)
      END IF
      IF (mod(t,tw)<dt) THEN
         !! Uncomment if you want the trajectory (may generate a huge file!)
@@ -146,7 +146,7 @@ PROGRAM maooam_lyapvectors
     DO WHILE (t>offset .AND. IndexBen>0 .AND. IndexSample>0)
       IndexBen=IndexBen-1
       write_sample = mod(t,sampling_time)<dt
-      CALL compute_vectors(t,IndexSample,.false.,write_sample)
+      CALL compute_vectors(t,IndexBen,IndexSample,.false.,write_sample)
       IF (write_sample) THEN
         IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexSample) ! Performs QR step with prop
         CALL compute_exponents(t,IndexSample,.false.)

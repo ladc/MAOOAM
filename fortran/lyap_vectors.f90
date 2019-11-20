@@ -54,7 +54,6 @@ MODULE lyap_vectors
    
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: ensemble !< Buffer containing the QR decompsoition of the ensemble
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prop     !< Buffer holding the propagator matrix
-  REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: prodR    !< Buffer containing the product of R matrices over the sampling_time period
   
   INTEGER :: lwork
   REAL(kind=8), DIMENSION(:), ALLOCATABLE :: work       !< Temporary buffer for QR decomposition
@@ -67,9 +66,12 @@ MODULE lyap_vectors
   REAL(KIND=8), DIMENSION(:,:), ALLOCATABLE :: one
 
   INTEGER :: timestepsperfile ! Maximum number of rescaling_time length time steps to fit in maxfilesize
-  INTEGER :: numfiles     ! Number of files that contain the LV/LE data
-  INTEGER :: stride       ! File units for different variables are stride apart.
-  INTEGER :: totalnumtimesteps
+  INTEGER :: numfiles     ! Number of files that contain the prop/R data
+  INTEGER :: numsamplefiles     ! Number of files that contain the LV/LE data
+  INTEGER :: stride       ! File units for different prop/R variables are stride apart.
+  INTEGER :: totalnumtimesteps ! Number of rescaling timesteps (for which the prop/R are written out)
+  INTEGER :: totalnumsamples ! Number of sampling timesteps (for which the LE/LV are written out)
+
 
   !-----------------------------------------------------!
   !                                                     !
@@ -93,8 +95,6 @@ CONTAINS
     INTEGER :: AllocStat,ilaenv,info,k
     ALLOCATE(one(ndim,ndim))
     CALL init_one(one)
-    ALLOCATE(prodR(ndim,ndim))
-    CALL init_one(prodR)
     lwork=ilaenv(1,"dgeqrf"," ",ndim,ndim,ndim,-1)
     lwork=ndim*lwork
     ALLOCATE(prop_buf(ndim,ndim),ensemble(ndim,ndim),tau(ndim),prop(ndim,ndim), &
@@ -103,8 +103,10 @@ CONTAINS
     ! Files for output and temporary storage
     ! Maximum number of rescaling_time length time steps: maxfilesize*1024*1024/(8*ndim^2).
     timestepsperfile = int(ceiling(maxfilesize*1024.*1024./dble(8*ndim*ndim)))
-    totalnumtimesteps = floor(t_run/sampling_time) + 1
+    totalnumtimesteps = floor(t_run/rescaling_time) + 1
+    totalnumsamples = floor(t_run/sampling_time) + 1
     numfiles = ceiling(totalnumtimesteps/dble(timestepsperfile))
+    numsamplefiles = ceiling(totalnumsamples/dble(timestepsperfile))
     stride=int(10.**ceiling(log(dble(numfiles))/log(10.)))
     IF (stride.eq.1) stride=10
     DO k=1,numfiles
@@ -120,15 +122,17 @@ CONTAINS
       IF (compute_FLV_LE) &
       &OPEN(21*stride+k,file='FLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
-      IF (compute_FLV .OR. compute_FLV_LE) &
-      &OPEN(23*stride+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',&
-      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_CLV) &
       &OPEN(32*stride+k,file='CLV_vec_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_CLV_LE) &
       &OPEN(31*stride+k,file='CLV_exp_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim)
+    END DO
+    DO k=1,numsamplefiles
+      IF (compute_FLV .OR. compute_FLV_LE) &
+      &OPEN(23*stride+k,file='propagator_part_'//trim(str(k))//'.dat',status='replace',&
+      &form='UNFORMATTED',access='DIRECT',recl=8*ndim**2)
       IF (compute_CLV .OR. compute_CLV_LE) &
       &OPEN(33*stride+k,file='R_part_'//trim(str(k))//'.dat',status='replace',&
       &form='UNFORMATTED',access='DIRECT',recl=8*ndim*(ndim+1)/2)
@@ -198,7 +202,7 @@ CONTAINS
     LOGICAL :: forward 
     
     IF (.NOT. forward .AND. (compute_FLV .OR. compute_FLV_LE)) THEN
-      CALL read_lyapvec(step,prop,23,directionPROP)
+      CALL read_prop(step,prop,23,directionPROP)
       prop_buf=transpose(prop)
       ! Multiply the Propagator prop from the right side with the non transposed q matrix
       ! from the qr decomposition which is stored in ensemble.
@@ -241,7 +245,7 @@ CONTAINS
       CALL read_R(step,33,directionR)
       CALL DTPTRS('u','n','n',ndim,ndim,R,CLV,ndim,info)
       CALL normMAT(CLV,loclyap_CLV)
-      loclyap_CLV=-log(abs(loclyap_CLV))/sampling_time
+      loclyap_CLV=-log(abs(loclyap_CLV))/rescaling_time
    END SUBROUTINE ginelli
 
    !> Routine that returns the current global propagator and ensemble of
@@ -254,8 +258,8 @@ CONTAINS
 
    !> Routine that saves the BLV, FLV and CLV if in right time period according
    !> to namelist parameters in int_params.nml
-   SUBROUTINE compute_vectors(t,step,forward,write_sample)
-   INTEGER :: step
+   SUBROUTINE compute_vectors(t,step,sample_step,forward,write_sample)
+   INTEGER :: step, sample_step
    REAL(KIND=8) :: t
    LOGICAL :: forward, write_sample
    LOGICAL :: past_conv_BLV,before_conv_FLV
@@ -270,22 +274,14 @@ CONTAINS
          BLV=ensemble ! make copy of QR decomposed ensemble     
          CALL DORGQR(ndim,ndim,ndim,BLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix
          IF (write_sample) THEN
-           CALL write_lyapvec(step+1,BLV,12,directionBLV) !write Q (BLV) matrix
+           CALL write_lyapvec(sample_step+1,BLV,12,directionBLV) !write Q (BLV) matrix
          END IF
        END IF
 
-       IF (compute_FLV .OR. compute_FLV_LE) CALL write_lyapvec(step,prop,23,directionPROP)
+       IF (compute_FLV .OR. compute_FLV_LE) CALL write_prop(step,prop,23,directionPROP)
        IF (compute_CLV .OR. compute_CLV_LE) THEN
-         ! We left-multiply the R with the accumulated R in prodR.
-         CALL DTRMM('l','u','n','n',ndim,ndim,1.0,ensemble,ndim,prodR,ndim)
-         ! When sampling_time is done, we store the accumulated R.
-         IF (write_sample) THEN
-           ! The accumulated R matrix is in prodR, and will be packed in R.
-           CALL packTRI(prodR,R)
-           CALL write_R(step,33,directionR)
-           CALL init_one(prodR)
-         END IF
-
+         CALL packTRI(ensemble,R)
+         CALL write_R(step,33,directionR)
        END IF
 
      ELSE
@@ -293,15 +289,15 @@ CONTAINS
          FLV=ensemble ! make copy of QR decomposed ensemble     
          CALL DORGQR(ndim,ndim,ndim,FLV,ndim,tau,work,lwork,info) !retrieve Q (BLV) matrix 
          IF (write_sample) THEN
-           CALL write_lyapvec(step,FLV,22,directionFLV)
+           CALL write_lyapvec(sample_step,FLV,22,directionFLV)
          END IF
        END IF
 
        IF (compute_CLV .AND. before_conv_FLV) THEN
          IF (write_sample) THEN
-           CALL read_lyapvec(step,BLV,12,directionBLV)
+           CALL read_lyapvec(sample_step,BLV,12,directionBLV)
            CALL DGEMM ('n', 'n', ndim, ndim,ndim, 1.0d0, BLV, ndim,CLV, ndim,0.D0,buf_CLV,ndim) 
-           CALL write_lyapvec(step,buf_CLV,32,directionCLV)
+           CALL write_lyapvec(sample_step,buf_CLV,32,directionCLV)
          END IF
        END IF
      END IF
@@ -361,7 +357,7 @@ CONTAINS
    LOGICAL :: rev
    REAL(KIND=8), DIMENSION(ndim), INTENT(OUT) :: exponents
      IF (rev) THEN
-       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+       revI = totalnumsamples - i + 1 ! write in reverse order (TODO: off by 1 error?)
      ELSE
        revI = i
      END IF
@@ -375,7 +371,7 @@ CONTAINS
    LOGICAL :: rev
    REAL(KIND=8), DIMENSION(ndim), INTENT(IN) :: exponents
      IF (rev) THEN
-       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+       revI = totalnumsamples - i + 1 ! write in reverse order (TODO: off by 1 error?)
      ELSE
        revI = i
      END IF
@@ -389,7 +385,7 @@ CONTAINS
    LOGICAL :: rev
    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: vectors
      IF (rev) THEN
-       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+       revI = totalnumsamples - i + 1 ! write in reverse order (TODO: off by 1 error?)
      ELSE
        revI = i
      END IF
@@ -403,13 +399,41 @@ CONTAINS
    LOGICAL :: rev
    REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(IN) :: vectors
      IF (rev) THEN
-       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+       revI = totalnumsamples - i + 1 ! write in reverse order (TODO: off by 1 error?)
      ELSE
        revI = i
      END IF
      k=ceiling(dble(revI)/dble(timestepsperfile))   
      WRITE(unit=unitI*stride+k,rec=revI-(k-1)*timestepsperfile) vectors
    END SUBROUTINE write_lyapvec
+
+   !> Routine to read propagator
+   SUBROUTINE read_prop(i,prop,unitI,rev)
+   INTEGER :: i,unitI,k,revI
+   LOGICAL :: rev
+   REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(OUT) :: prop
+     IF (rev) THEN
+       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+     ELSE
+       revI = i
+     END IF
+     k=ceiling(dble(revI)/dble(timestepsperfile))   
+     READ(unit=unitI*stride+k,rec=revI-(k-1)*timestepsperfile) prop 
+   END SUBROUTINE read_prop
+  
+   !> Routine to write propagator
+   SUBROUTINE write_prop(i,prop,unitI,rev)
+   INTEGER :: i,unitI,k,revI
+   LOGICAL :: rev
+   REAL(KIND=8), DIMENSION(ndim,ndim), INTENT(IN) :: prop
+     IF (rev) THEN
+       revI = totalnumtimesteps - i + 1 ! write in reverse order (TODO: off by 1 error?)
+     ELSE
+       revI = i
+     END IF
+     k=ceiling(dble(revI)/dble(timestepsperfile))   
+     WRITE(unit=unitI*stride+k,rec=revI-(k-1)*timestepsperfile) prop 
+   END SUBROUTINE write_prop 
 
    !> Routine that normalizes uppertriangular matrix (LAPACK
    !> standard)
