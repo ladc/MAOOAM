@@ -146,7 +146,7 @@ PROGRAM maooam_lyapvectors
     DO WHILE (t>offset .AND. IndexBen>0 .AND. IndexSample>0)
 
       IF (compute_FLV .OR. compute_FLV_LE) CALL benettin_step(.false.,IndexBen) ! Performs QR step with prop
-      IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexSample)               ! Performs Ginelli step with prop
+      IF (compute_CLV .OR. compute_CLV_LE) CALL ginelli(IndexBen)               ! Performs Ginelli step with prop
       write_sample = mod(t,sampling_time)<dt
       CALL compute_vectors(t,IndexBen,IndexSample,.false.,write_sample)
       IF (write_sample) THEN
