@@ -64,7 +64,13 @@ MODULE params
   REAL(KIND=8) :: L         !< \f$L\f$ - Domain length scale
   REAL(KIND=8) :: sc        !< Ratio of surface to atmosphere temperature.
   REAL(KIND=8) :: sB        !< Stefan–Boltzmann constant
-  REAL(KIND=8) :: betp      ! \f$\beta'\f$ - Non-dimensional beta parameter
+  REAL(KIND=8) :: betp      !< \f$\beta'\f$ - Non-dimensional beta parameter
+
+  REAL(KIND=8) :: nua=0.D0  !< Dissipation in the atmosphere
+  REAL(KIND=8) :: nuo=0.D0  !< Dissipation in the ocean
+
+  REAL(KIND=8) :: nuap      !< Non-dimensional dissipation in the atmosphere
+  REAL(KIND=8) :: nuop      !< Non-dimensional dissipation in the ocean
 
   REAL(KIND=8) :: t_trans   !< Transient time period
   REAL(KIND=8) :: t_run     !< Effective intergration time (length of the generated trajectory)
@@ -115,8 +121,8 @@ CONTAINS
     INTEGER :: AllocStat
 
     NAMELIST /aoscale/  scale,f0,n,rra,phi0_npi
-    NAMELIST /oparams/  gp,r,H,d
-    NAMELIST /aparams/  k,kp,sig0
+    NAMELIST /oparams/  gp,r,H,d,nuo
+    NAMELIST /aparams/  k,kp,sig0,nua
     NAMELIST /toparams/ Go,Co,To0
     NAMELIST /taparams/ Ga,Ca,epsa,Ta0
     NAMELIST /otparams/ sc,lambda,RR,sB
@@ -216,6 +222,8 @@ CONTAINS
     sBpa=8*epsa*sB*Ta0**3/(Go*f0) ! long wave radiation from atmosphere absorbed by ocean
     LSBpo=2*epsa*sB*To0**3/(Ga*f0) ! long wave radiation from ocean absorbed by atmosphere
     LSBpa=8*epsa*sB*Ta0**3/(Ga*f0) ! long wave radiation lost by atmosphere to space & ocea
+    nuap=nua/(f0*L**2)
+    nuop=nuo/(f0*L**2)
 
     !---------------------------------------------------------!
     !                                                         !
